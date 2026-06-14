@@ -373,7 +373,7 @@ function showToast(message, type = 'success') {
     const html = `
     <div id="${toastId}" class="toast align-items-center border-0 shadow-sm"
          role="alert" aria-live="assertive" data-bs-autohide="true" data-bs-delay="3500"
-         style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;min-width:280px;">
+         style="position:fixed;top:1.5rem;right:1.5rem;z-index:9999;min-width:280px;">
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center gap-2">
                 <i class="bi ${icons[type] || icons.info}"></i>

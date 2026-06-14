@@ -42,6 +42,8 @@ class HomeController extends Controller
         //     ->paginate(6);
         $tutors = collect();
 
-        return view('home', compact('mataPelajaran', 'stats', 'tutors'));
+        // return view('home', compact('mataPelajaran', 'stats', 'tutors'));
+        // return view('dashboard-admin', compact('mataPelajaran', 'stats', 'tutors'));
+        return view('pages.admin.dashboard', compact('mataPelajaran', 'stats', 'tutors'));
     }
 }

@@ -74,7 +74,53 @@
                 <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
             @enderror
         </div>
+        <div class="row mb-3">
+            <div class="col-7">
+                <label class="tk-form-label" for="name">Tempat Lahir</label>
+                <div class="tk-input-group">
+                    <i class="bi bi-geo-alt tk-input-icon"></i>
+                    <input type="text" id="tempat_lhr" name="tempat_lhr"
+                           class="tk-form-control @error('tempat_lhr') is-invalid @enderror"
+                           placeholder="Nama tempat lahir"
+                           value="{{ old('tempat_lhr') }}" required>
+                </div>
+            </div>
+            <div class="col-5">
+                <label class="tk-form-label" for="name">Tanggal Lahir</label>
+                <div class="tk-input-group">
+                    <i class="bi bi-calendar tk-input-icon"></i>
+                    <input type="date" id="tanggal_lhr" name="tanggal_lhr"
+                           class="tk-form-control tanggal-input @error('tanggal_lhr') is-invalid @enderror"
+                           placeholder="Tanggal lahir"
+                           value="{{ old('tanggal_lhr') }}" required>
+                </div>
+            </div>
+            @if($errors->has('tempat_lhr'))
+                <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">
+                    {{ $errors->first('tempat_lhr') }}
+                </div>
+            @endif
+            @if($errors->has('tanggal_lhr'))
+                <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">
+                    {{ $errors->first('tanggal_lhr') }}
+                </div>
+            @endif
+        </div>
 
+        {{-- Alamat --}}
+        <div class="mb-3">
+            <label class="tk-form-label" for="email">Domisili</label>
+            <div class="tk-input-group">
+                <i class="bi bi-house-door tk-input-icon"></i>
+                <input type="text" id="alamat" name="alamat"
+                       class="tk-form-control @error('alamat') is-invalid @enderror"
+                       placeholder="Alamat sesuai domisili"
+                       value="{{ old('alamat') }}" required>
+            </div>
+            @error('alamat')
+                <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
+            @enderror
+        </div>
         {{-- Email --}}
         <div class="mb-3">
             <label class="tk-form-label" for="email">Alamat Email</label>
@@ -362,6 +408,9 @@ $(document).ready(function () {
     function activateRole(role) {
         $('#roleInput').val(role);
         currentRole = role;
+
+        $('.tk-role-tab').removeClass('active');
+        $(`.tk-role-tab[data-role="${role}"]`).addClass('active');
 
         if (role === 'tutor') {
             $('#formTitle').text('Daftar sebagai Tutor');

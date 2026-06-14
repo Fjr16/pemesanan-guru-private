@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\SiswaController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -106,28 +107,27 @@ Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logou
 ================================================================ */
 // Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
-//     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
-//     // Manajemen Tutor
-//     Route::get('/tutor',                      [App\Http\Controllers\Admin\TutorController::class, 'index'])->name('tutor');
-//     Route::post('/tutor/{tutor}/verifikasi',  [App\Http\Controllers\Admin\TutorController::class, 'verifikasi'])->name('tutor.verifikasi');
-//     Route::post('/tutor/{tutor}/tolak',       [App\Http\Controllers\Admin\TutorController::class, 'tolak'])->name('tutor.tolak');
-//     Route::delete('/tutor/{tutor}',           [App\Http\Controllers\Admin\TutorController::class, 'destroy'])->name('tutor.destroy');
+    // Manajemen Tutor
+    Route::get('/tutor',                      [App\Http\Controllers\Admin\TutorController::class, 'index'])->name('tutor');
+    Route::post('/tutor/{tutor}/verifikasi',  [App\Http\Controllers\Admin\TutorController::class, 'verifikasi'])->name('tutor.verifikasi');
+    Route::post('/tutor/{tutor}/tolak',       [App\Http\Controllers\Admin\TutorController::class, 'tolak'])->name('tutor.tolak');
+    Route::delete('/tutor/{tutor}',           [App\Http\Controllers\Admin\TutorController::class, 'destroy'])->name('tutor.destroy');
 
-//     // Manajemen Siswa
-//     Route::get('/siswa',           [App\Http\Controllers\Admin\SiswaController::class, 'index'])->name('siswa');
-//     Route::delete('/siswa/{user}', [App\Http\Controllers\Admin\SiswaController::class, 'destroy'])->name('siswa.destroy');
+    // Manajemen Siswa
+    Route::get('/siswa',           [SiswaController::class, 'index'])->name('siswa');
+    Route::delete('/siswa/{user}', [SiswaController::class, 'destroy'])->name('siswa.destroy');
 
-//     // Mata Pelajaran (CRUD)
-//     Route::resource('mata-pelajaran', App\Http\Controllers\Admin\MataPelajaranController::class)
-//          ->names('mapel');
+    // Mata Pelajaran (CRUD)
+    Route::get('/mata-pelajaran', [App\Http\Controllers\Admin\MataPelajaranController::class, 'index'])->name('mapel');
 
-//     // Semua transaksi / booking
-//     Route::get('/transaksi',           [App\Http\Controllers\Admin\TransaksiController::class, 'index'])->name('transaksi');
-//     Route::get('/transaksi/{booking}', [App\Http\Controllers\Admin\TransaksiController::class, 'show'])->name('transaksi.show');
+    // Semua transaksi / booking
+    Route::get('/transaksi',           [App\Http\Controllers\Admin\TransaksiController::class, 'index'])->name('transaksi');
+    Route::get('/transaksi/{booking}', [App\Http\Controllers\Admin\TransaksiController::class, 'show'])->name('transaksi.show');
 
-//     // Laporan / rekap
-//     Route::get('/laporan', [App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan');
+    // Laporan / rekap
+    Route::get('/laporan', [App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan');
 
 // });
 
