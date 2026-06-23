@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('subject_categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(false);
+            $table->string('name', 100)->nullable(false);
             $table->string('deskripsi')->nullable(true);
-            $table->string('foto')->nullable(true);
-            $table->softDeletes();
+            $table->string('foto',100)->nullable(true);
+            $table->boolean('is_active');
             $table->timestamps();
         });
     }

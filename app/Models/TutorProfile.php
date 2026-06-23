@@ -8,5 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['tutor_id','experience_years','periode','jumlah_siswa','tempat'])]
 class TutorProfile extends Model
 {
-    //
+    public function tutor(){
+        return $this->belongsTo(Tutor::class);
+    }
 }

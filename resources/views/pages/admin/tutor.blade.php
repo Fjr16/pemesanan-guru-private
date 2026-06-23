@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', 'Tutor — Admin TutorKu')
-@section('page-title', 'Manajemen Tutor')
 
 @section('content')
 
@@ -21,7 +20,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Total Tutor</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['total'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['total'] }}</div>
         </div>
     </div>
     <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
@@ -30,7 +29,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Aktif</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['active'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['active'] }}</div>
         </div>
     </div>
     <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
@@ -39,7 +38,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Pending</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['pending'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['pending'] }}</div>
         </div>
     </div>
     <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
@@ -48,7 +47,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Ditolak</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['rejected'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['rejected'] }}</div>
         </div>
     </div>
 </div>
@@ -66,7 +65,7 @@
                    onblur="this.style.borderColor='#e8eaf0'">
         </div>
         <select id="filterStatus"
-                style="height:34px;padding:0 28px 0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;cursor:pointer;appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238890a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;">
+                style="height:34px;padding:0 28px 0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;cursor:pointer;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238890a8' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 10px center;">
             <option value="">Semua Status</option>
             <option value="active">Aktif</option>
             <option value="pending">Pending</option>
@@ -96,8 +95,8 @@
             <tbody>
                 @forelse($tutors as $tutor)
                     <tr class="tutor-row"
-                        data-nama="{{ strtolower($tutor->name ?? '') }}"
-                        data-status="{{ $tutor->status ?? 'pending' }}"
+                        data-nama="{{ strtolower($tutor->name) }}"
+                        data-status="{{ $tutor->status }}"
                         style="transition:background .1s"
                         onmouseover="this.style.background='#fafbff'"
                         onmouseout="this.style.background=''">
@@ -107,36 +106,34 @@
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;color:#3730a3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">
-                                    {{ strtoupper(substr($tutor->name ?? 'T', 0, 2)) }}
+                                    {{ strtoupper(substr($tutor->name, 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div style="font-weight:500;font-size:13px;color:#1a1a2e;">{{ $tutor->name ?? '-' }}</div>
-                                    <div style="font-size:11px;color:#8890a8;">{{ $tutor->email ?? '' }}</div>
+                                    <div style="font-weight:500;font-size:13px;color:#1a1a2e;">{{ $tutor->name }}</div>
+                                    <div style="font-size:11px;color:#8890a8;">{{ $tutor->user->email ?? '-' }}</div>
                                 </div>
                             </div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                                @foreach(($tutor->subjects ?? []) as $subj)
+                                @forelse($tutor->tutorSubjects as $ts)
                                     <span style="display:inline-flex;align-items:center;gap:3px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;">
-                                        {{ $subj->nama ?? $subj }}
+                                        {{ $ts->subjectCategory->name ?? '-' }}
                                     </span>
-                                @endforeach
-                                @if(empty($tutor->subjects) || count($tutor->subjects) === 0)
+                                @empty
                                     <span style="font-size:11px;color:#b0b8cc;">-</span>
-                                @endif
+                                @endforelse
                             </div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;white-space:nowrap;">
-                            <span style="font-weight:500;font-size:13px;color:#1a1a2e;">Rp {{ number_format($tutor->hourly_rate ?? 0, 0, ',', '.') }}</span>
+                            <span style="font-weight:500;font-size:13px;color:#1a1a2e;">Rp {{ number_format($tutor->hourly_rate, 0, ',', '.') }}</span>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
-                            @php $st = $tutor->status ?? 'pending'; @endphp
-                            @if($st === 'active')
+                            @if($tutor->status === 'active')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
                                     <i class="bi bi-check-circle-fill" style="font-size:10px;"></i> Aktif
                                 </span>
-                            @elseif($st === 'pending')
+                            @elseif($tutor->status === 'pending')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fffbeb;color:#92400e;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
                                     <i class="bi bi-hourglass-split" style="font-size:10px;"></i> Pending
                                 </span>
@@ -147,51 +144,45 @@
                             @endif
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $tutor->created_at ? $tutor->created_at->format('d M Y') : '-' }}
+                            {{ $tutor->created_at->format('d M Y') }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <div style="display:flex;gap:6px;">
-                                @if($st === 'pending')
+                                @if($tutor->status === 'pending')
                                     <button type="button"
                                             class="btn-verif-tutor"
                                             data-id="{{ $tutor->id }}"
-                                            data-nama="{{ $tutor->name ?? '' }}"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #a7f3d0;background:#f0fdf4;color:#15803d;transition:background .15s;"
-                                            onmouseover="this.style.background='#dcfce7'"
-                                            onmouseout="this.style.background='#f0fdf4'"
-                                            title="Verifikasi">
-                                        <i class="bi bi-check-lg" style="font-size:11px;"></i> Verifikasi
+                                            data-nama="{{ $tutor->name }}"
+                                            title="Verifikasi"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #a7f3d0;background:#f0fdf4;color:#15803d;cursor:pointer;transition:background .15s;">
+                                        <i class="bi bi-check-lg" style="font-size:12px;"></i>
                                     </button>
                                     <button type="button"
                                             class="btn-tolak-tutor"
                                             data-id="{{ $tutor->id }}"
-                                            data-nama="{{ $tutor->name ?? '' }}"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;transition:background .15s;"
-                                            onmouseover="this.style.background='#fee2e2'"
-                                            onmouseout="this.style.background='#fef2f2'"
-                                            title="Tolak">
-                                        <i class="bi bi-x-lg" style="font-size:11px;"></i>
+                                            data-nama="{{ $tutor->name }}"
+                                            title="Tolak"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;cursor:pointer;transition:background .15s;">
+                                        <i class="bi bi-x-lg" style="font-size:12px;"></i>
                                     </button>
                                 @else
                                     <button type="button"
-                                            class="btn-detail-tutor"
+                                            class="btn-toggle-tutor"
                                             data-id="{{ $tutor->id }}"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #d0d5e8;background:#fff;color:#1e2d6b;transition:background .15s;"
-                                            onmouseover="this.style.background='#f0f3ff'"
-                                            onmouseout="this.style.background='#fff'"
-                                            title="Detail">
-                                        <i class="bi bi-eye" style="font-size:11px;"></i> Detail
+                                            data-nama="{{ $tutor->name }}"
+                                            data-is-active="{{ $tutor->status === 'active' ? '1' : '0' }}"
+                                            title="{{ $tutor->status === 'active' ? 'Nonaktifkan' : 'Aktifkan' }}"
+                                            style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;border:1px solid #d0d5e8;background:#fff;color:#1e2d6b;cursor:pointer;transition:background .15s;">
+                                        <i class="bi bi-{{ $tutor->status === 'active' ? 'pause' : 'play' }}-fill" style="font-size:12px;"></i>
                                     </button>
                                 @endif
                                 <button type="button"
-                                        class="btn-delete-tutor"
+                                        class="tk-action-btn btn-delete-tutor"
                                         data-id="{{ $tutor->id }}"
-                                        data-nama="{{ $tutor->name ?? '' }}"
-                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;transition:background .15s;"
-                                        onmouseover="this.style.background='#fee2e2'"
-                                        onmouseout="this.style.background='#fef2f2'"
-                                        title="Hapus">
-                                    <i class="bi bi-trash" style="font-size:11px;"></i>
+                                        data-nama="{{ $tutor->name }}"
+                                        title="Hapus"
+                                        style="border-color:#fecaca;background:#fef2f2;color:#991b1b">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </div>
                         </td>
@@ -214,9 +205,10 @@
      style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px">
 </div>
 
+
 {{-- ================================================================
      MODAL KONFIRMASI VERIFIKASI
-=============================================================== --}}
+================================================ --}}
 <div class="modal fade" id="verifModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
         <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
@@ -242,7 +234,7 @@
 
 {{-- ================================================================
      MODAL KONFIRMASI TOLAK
-=============================================================== --}}
+================================================ --}}
 <div class="modal fade" id="tolakModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
         <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
@@ -268,7 +260,7 @@
 
 {{-- ================================================================
      MODAL KONFIRMASI HAPUS
-=============================================================== --}}
+================================================ --}}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:360px">
         <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
@@ -299,10 +291,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const verifModal = new bootstrap.Modal(document.getElementById('verifModal'));
-    const tolakModal = new bootstrap.Modal(document.getElementById('tolakModal'));
+    const verifModal  = new bootstrap.Modal(document.getElementById('verifModal'));
+    const tolakModal  = new bootstrap.Modal(document.getElementById('tolakModal'));
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
+    /* ── Toast helper ──────────────────────────────────────── */
     function showToast(msg, type = 'success') {
         const colors = type === 'success'
             ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0'
@@ -348,11 +341,19 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Memproses...';
         fetch(`/admin/tutor/${id}/verifikasi`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            },
         })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { verifModal.hide(); showToast('Tutor berhasil diverifikasi!'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showToast('Gagal memverifikasi tutor.', 'error'))
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw data;
+            verifModal.hide();
+            showToast(data.message);
+            setTimeout(() => location.reload(), 700);
+        })
+        .catch(err => showToast(err?.message || 'Gagal memverifikasi tutor.', 'error'))
         .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-lg"></i> Verifikasi'; });
     });
 
@@ -371,12 +372,49 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Memproses...';
         fetch(`/admin/tutor/${id}/tolak`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            },
         })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { tolakModal.hide(); showToast('Pendaftaran tutor ditolak.', 'error'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showToast('Gagal menolak tutor.', 'error'))
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw data;
+            tolakModal.hide();
+            showToast(data.message);
+            setTimeout(() => location.reload(), 700);
+        })
+        .catch(err => showToast(err?.message || 'Gagal menolak tutor.', 'error'))
         .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-lg"></i> Tolak'; });
+    });
+
+    /* ── Toggle status ─────────────────────────────────────── */
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-toggle-tutor');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const isActive = btn.dataset.isActive === '1';
+        const newActive = isActive ? 0 : 1;
+
+        btn.disabled = true;
+        fetch(`/admin/tutor/${id}/toggle-status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            },
+            body: JSON.stringify({ is_active: newActive })
+        })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw data;
+            showToast(data.message);
+            setTimeout(() => location.reload(), 700);
+        })
+        .catch(err => {
+            btn.disabled = false;
+            showToast(err?.message || 'Gagal mengubah status tutor.', 'error');
+        });
     });
 
     /* ── Hapus ─────────────────────────────────────────────── */
@@ -393,13 +431,20 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menghapus...';
         fetch(`/admin/tutor/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ _method: 'DELETE' })
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            },
         })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { deleteModal.hide(); showToast('Tutor berhasil dihapus.'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showToast('Gagal menghapus tutor.', 'error'))
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw data;
+            deleteModal.hide();
+            showToast(data.message);
+            setTimeout(() => location.reload(), 700);
+        })
+        .catch(err => showToast(err?.message || 'Gagal menghapus tutor.', 'error'))
         .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash3"></i> Hapus'; });
     });
 
@@ -407,7 +452,11 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
+    .form-check-input:checked { background-color:#1e2d6b; border-color:#1e2d6b; }
+    .form-check-input:focus   { box-shadow:0 0 0 3px rgba(30,45,107,.12); }
     @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
     @keyframes spin    { to { transform:rotate(360deg); } }
+    .btn-toggle-tutor:hover:not(:disabled) { background:#f0f3ff !important; }
+    .btn-delete-tutor:hover:not(:disabled) { background:#fee2e2 !important; }
 </style>
 @endpush

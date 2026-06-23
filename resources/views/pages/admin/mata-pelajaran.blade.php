@@ -52,7 +52,7 @@
             <tbody>
                 @forelse($mataPelajaran as $mp)
                     <tr class="mapel-row"
-                        data-nama="{{ strtolower($mp->nama) }}"
+                        data-nama="{{ strtolower($mp->name) }}"
                         style="transition:background .1s"
                         onmouseover="this.style.background='#fafbff'"
                         onmouseout="this.style.background=''">
@@ -60,7 +60,7 @@
                             {{ $loop->iteration }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;color:#1a1a2e;vertical-align:middle">
-                            <div style="font-weight:500;font-size:13px">{{ $mp->nama }}</div>
+                            <div style="font-weight:500;font-size:13px">{{ $mp->name }}</div>
                             @if($mp->deskripsi)
                                 <div style="font-size:11px;color:#8890a8;margin-top:2px">
                                     {{ Str::limit($mp->deskripsi, 55) }}
@@ -69,7 +69,7 @@
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;text-align:center">
                             <div style="width:36px;height:36px;border-radius:8px;background:#f0f2f8;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;margin:0 auto">
-                                {{ $mp->icon ?? '📚' }}
+                                {{ $mp->foto ?? '📚' }}
                             </div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
@@ -89,27 +89,16 @@
                             </div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
-                            <div style="display:flex;gap:6px">
-                                <button type="button"
-                                        class="tk-action-btn btn-edit-mapel"
-                                        data-id="{{ $mp->id }}"
-                                        data-nama="{{ $mp->nama }}"
-                                        data-icon="{{ $mp->icon }}"
-                                        data-deskripsi="{{ $mp->deskripsi }}"
-                                        data-is-active="{{ $mp->is_active ? '1' : '0' }}"
-                                        title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button type="button"
-                                        class="tk-action-btn btn-delete-mapel"
-                                        data-id="{{ $mp->id }}"
-                                        data-nama="{{ $mp->nama }}"
-                                        data-tutor-count="{{ $mp->tutors_count ?? 0 }}"
-                                        title="Hapus"
-                                        style="border-color:#fecaca;background:#fef2f2;color:#991b1b">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                            <button type="button"
+                                    class="tk-action-btn btn-edit-mapel"
+                                    data-id="{{ $mp->id }}"
+                                    data-nama="{{ $mp->name }}"
+                                    data-icon="{{ $mp->foto }}"
+                                    data-deskripsi="{{ $mp->deskripsi }}"
+                                    data-is-active="{{ $mp->is_active ? '1' : '0' }}"
+                                    title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
                         </td>
                     </tr>
                 @empty
@@ -156,7 +145,6 @@
             </div>
             <div class="modal-body" style="padding:20px 24px">
                 <input type="hidden" id="mapelId">
-                <input type="hidden" id="mapelMethod" value="POST">
 
                 {{-- Nama --}}
                 <div style="margin-bottom:16px">
@@ -201,6 +189,9 @@
                             </button>
                         @endforeach
                     </div>
+                    <div id="mapelIconError"
+                         style="font-size:11px;color:#991b1b;margin-top:4px;display:none">
+                    </div>
                 </div>
 
                 {{-- Deskripsi --}}
@@ -214,6 +205,9 @@
                               style="width:100%;padding:8px 12px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;resize:vertical;min-height:72px;transition:border-color .15s"
                               onfocus="this.style.borderColor='#a5b4fc'"
                               onblur="this.style.borderColor='#e8eaf0'"></textarea>
+                    <div id="mapelDeskripsiError"
+                         style="font-size:11px;color:#991b1b;margin-top:4px;display:none">
+                    </div>
                 </div>
 
                 {{-- Status --}}
@@ -249,38 +243,6 @@
 </div>
 
 
-{{-- ================================================================
-     MODAL KONFIRMASI HAPUS
-================================================================ --}}
-<div class="modal fade" id="deleteMapelModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:360px">
-        <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
-            <div class="modal-body" style="padding:28px 24px;text-align:center">
-                <div style="width:52px;height:52px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-                    <i class="bi bi-trash3" style="font-size:22px;color:#991b1b"></i>
-                </div>
-                <h5 style="font-size:15px;font-weight:600;margin:0 0 6px;color:#1a1a2e">
-                    Hapus Mata Pelajaran?
-                </h5>
-                <p style="font-size:13px;font-weight:500;color:#4b5574;margin:0 0 4px" id="deleteMapelName"></p>
-                <p style="font-size:12px;color:#b45309;margin:0 0 24px;min-height:18px" id="deleteMapelWarning"></p>
-                <input type="hidden" id="deleteMapelId">
-                <div style="display:flex;gap:8px">
-                    <button type="button"
-                            class="tk-topbar-btn"
-                            style="flex:1;justify-content:center;color:#4b5574"
-                            data-bs-dismiss="modal">
-                        Batal
-                    </button>
-                    <button type="button" id="confirmDeleteMapel"
-                            style="flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;background:#991b1b;color:#fff;transition:background .15s">
-                        <i class="bi bi-trash3"></i> Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 @endsection
 
@@ -289,8 +251,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const mapelModal  = new bootstrap.Modal(document.getElementById('mapelModal'));
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteMapelModal'));
+    const mapelModal = new bootstrap.Modal(document.getElementById('mapelModal'));
 
     /* ── Toast helper ──────────────────────────────────────── */
     function showToast(msg, type = 'success') {
@@ -329,18 +290,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ── Reset form ────────────────────────────────────────── */
+    function clearErrors() {
+        [
+            ['mapelNama', 'mapelNamaError'],
+            ['mapelIcon', 'mapelIconError'],
+            ['mapelDeskripsi', 'mapelDeskripsiError'],
+        ].forEach(([inputId, errorId]) => {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            input.style.borderColor = '#e8eaf0';
+            error.style.display = 'none';
+            error.textContent = '';
+        });
+    }
+
+    function showFieldError(inputId, errorId, message) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        input.style.borderColor = '#fca5a5';
+        error.textContent = message;
+        error.style.display = 'block';
+    }
+
     function resetForm() {
         ['mapelId','mapelNama','mapelIcon','mapelDeskripsi'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('mapelIsActive').checked = true;
-        document.getElementById('mapelNama').style.borderColor = '#e8eaf0';
-        document.getElementById('mapelNamaError').style.display = 'none';
+        clearErrors();
         document.querySelectorAll('.tk-emoji-pick').forEach(b => b.style.cssText = 'width:32px;height:32px;border-radius:6px;border:1px solid #e8eaf0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer');
     }
 
     /* ── Open: Tambah ──────────────────────────────────────── */
     document.getElementById('btnTambahMapel').addEventListener('click', function () {
         resetForm();
-        document.getElementById('mapelMethod').value = 'POST';
         document.getElementById('mapelModalTitle').innerHTML = '<i class="bi bi-plus-circle" style="color:#1e2d6b"></i> Tambah Mata Pelajaran';
         mapelModal.show();
     });
@@ -351,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!btn) return;
         resetForm();
         document.getElementById('mapelId').value = btn.dataset.id;
-        document.getElementById('mapelMethod').value = 'PUT';
         document.getElementById('mapelNama').value = btn.dataset.nama;
         document.getElementById('mapelIcon').value = btn.dataset.icon || '';
         document.getElementById('mapelDeskripsi').value = btn.dataset.deskripsi || '';
@@ -366,33 +346,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Save ──────────────────────────────────────────────── */
     document.getElementById('btnSaveMapel').addEventListener('click', function () {
+        clearErrors();
+
         const namaEl = document.getElementById('mapelNama');
         const nama = namaEl.value.trim();
         if (!nama) {
-            namaEl.style.borderColor = '#fca5a5';
-            document.getElementById('mapelNamaError').style.display = 'block';
+            showFieldError('mapelNama', 'mapelNamaError', 'Nama mata pelajaran wajib diisi.');
             namaEl.focus();
             return;
         }
-        namaEl.style.borderColor = '#e8eaf0';
-        document.getElementById('mapelNamaError').style.display = 'none';
 
-        const id     = document.getElementById('mapelId').value;
-        const method = document.getElementById('mapelMethod').value;
-        const url    = id ? `/admin/mata-pelajaran/${id}` : '/admin/mata-pelajaran';
-        const btn    = this;
+        const id  = document.getElementById('mapelId').value;
+        const btn = this;
 
         btn.disabled = true;
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menyimpan...';
 
-        fetch(url, {
+        fetch('/admin/mata-pelajaran', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
             },
             body: JSON.stringify({
-                _method:   method,
+                subject_category_id : id || null,
                 nama,
                 icon:      document.getElementById('mapelIcon').value.trim(),
                 deskripsi: document.getElementById('mapelDeskripsi').value.trim(),
@@ -403,15 +380,15 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(({ ok, data }) => {
             if (!ok) throw data;
             mapelModal.hide();
-            showToast(method === 'POST' ? 'Mata pelajaran berhasil ditambahkan.' : 'Mata pelajaran berhasil diperbarui.');
+            showToast(data.message);
             setTimeout(() => location.reload(), 700);
         })
         .catch(err => {
             const errors = err?.errors;
-            if (errors?.nama) {
-                document.getElementById('mapelNama').style.borderColor = '#fca5a5';
-                document.getElementById('mapelNamaError').textContent = errors.nama[0];
-                document.getElementById('mapelNamaError').style.display = 'block';
+            if (errors) {
+                if (errors.nama) showFieldError('mapelNama', 'mapelNamaError', errors.nama[0]);
+                if (errors.icon) showFieldError('mapelIcon', 'mapelIconError', errors.icon[0]);
+                if (errors.deskripsi) showFieldError('mapelDeskripsi', 'mapelDeskripsiError', errors.deskripsi[0]);
             }
             showToast(err?.message || 'Gagal menyimpan data.', 'error');
         })
@@ -428,62 +405,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const id = toggle.dataset.id;
         const isActive = toggle.checked ? 1 : 0;
 
-        fetch(`/admin/mata-pelajaran/${id}`, {
-            method: 'POST',
+        fetch(`/admin/mata-pelajaran/${id}/toggle-status`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
             },
-            body: JSON.stringify({ _method: 'PATCH', is_active: isActive })
-        })
-        .then(r => { if (!r.ok) throw r; })
-        .then(() => showToast(isActive ? 'Mata pelajaran diaktifkan.' : 'Mata pelajaran dinonaktifkan.'))
-        .catch(() => {
-            toggle.checked = !toggle.checked;
-            showToast('Gagal mengubah status.', 'error');
-        });
-    });
-
-    /* ── Open: Delete confirm ──────────────────────────────── */
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-delete-mapel');
-        if (!btn) return;
-        const count = parseInt(btn.dataset.tutorCount) || 0;
-        document.getElementById('deleteMapelId').value = btn.dataset.id;
-        document.getElementById('deleteMapelName').textContent = `"${btn.dataset.nama}"`;
-        document.getElementById('deleteMapelWarning').textContent = count > 0
-            ? `⚠ Ada ${count} tutor yang mengajar mata pelajaran ini. Relasi akan dilepas.`
-            : '';
-        deleteModal.show();
-    });
-
-    /* ── Confirm delete ────────────────────────────────────── */
-    document.getElementById('confirmDeleteMapel').addEventListener('click', function () {
-        const id  = document.getElementById('deleteMapelId').value;
-        const btn = this;
-
-        btn.disabled = true;
-        btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menghapus...';
-
-        fetch(`/admin/mata-pelajaran/${id}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            },
-            body: JSON.stringify({ _method: 'DELETE' })
+            body: JSON.stringify({ is_active: isActive })
         })
         .then(r => r.json().then(data => ({ ok: r.ok, data })))
         .then(({ ok, data }) => {
             if (!ok) throw data;
-            deleteModal.hide();
-            showToast('Mata pelajaran berhasil dihapus.');
-            setTimeout(() => location.reload(), 700);
+            showToast(data.message);
         })
-        .catch(err => showToast(err?.message || 'Gagal menghapus data.', 'error'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-trash3"></i> Hapus';
+        .catch(() => {
+            toggle.checked = !toggle.checked;
+            showToast('Gagal mengubah status.', 'error');
         });
     });
 
@@ -495,7 +432,6 @@ document.addEventListener('DOMContentLoaded', function () {
     .form-check-input:focus   { box-shadow:0 0 0 3px rgba(30,45,107,.12); }
     @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
     @keyframes spin    { to { transform:rotate(360deg); } }
-    #btnSaveMapel:hover:not(:disabled)    { background:#162356 !important; }
-    #confirmDeleteMapel:hover:not(:disabled) { background:#7f1d1d !important; }
+    #btnSaveMapel:hover:not(:disabled) { background:#162356 !important; }
 </style>
 @endpush

@@ -1,7 +1,6 @@
 @extends('layouts.admin')
 
 @section('title', 'Siswa — Admin TutorKu')
-@section('page-title', 'Manajemen Siswa')
 
 @section('content')
 
@@ -21,7 +20,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Total Siswa</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['total'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['total'] }}</div>
         </div>
     </div>
     <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
@@ -30,7 +29,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Aktif Bulan Ini</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['active_month'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['active_month'] }}</div>
         </div>
     </div>
     <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
@@ -39,7 +38,7 @@
         </div>
         <div>
             <div style="font-size:11px;color:#8890a8;">Baru Minggu Ini</div>
-            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['new_week'] ?? 0 }}</div>
+            <div style="font-size:20px;font-weight:600;color:#1a1a2e;">{{ $stats['new_week'] }}</div>
         </div>
     </div>
 </div>
@@ -77,7 +76,7 @@
             <tbody>
                 @forelse($siswaList as $siswa)
                     <tr class="siswa-row"
-                        data-nama="{{ strtolower($siswa->name ?? '') }}"
+                        data-nama="{{ strtolower($siswa->username) }}"
                         style="transition:background .1s"
                         onmouseover="this.style.background='#fafbff'"
                         onmouseout="this.style.background=''">
@@ -87,11 +86,11 @@
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <div style="width:36px;height:36px;border-radius:50%;background:#eef2ff;color:#3730a3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;">
-                                    {{ strtoupper(substr($siswa->name ?? 'S', 0, 2)) }}
+                                    {{ strtoupper(substr($siswa->username, 0, 2)) }}
                                 </div>
                                 <div>
-                                    <div style="font-weight:500;font-size:13px;color:#1a1a2e;">{{ $siswa->name ?? '-' }}</div>
-                                    <div style="font-size:11px;color:#8890a8;">{{ $siswa->email ?? '' }}</div>
+                                    <div style="font-weight:500;font-size:13px;color:#1a1a2e;">{{ $siswa->username }}</div>
+                                    <div style="font-size:11px;color:#8890a8;">{{ $siswa->email }}</div>
                                 </div>
                             </div>
                         </td>
@@ -100,22 +99,20 @@
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
                             <span style="display:inline-flex;align-items:center;gap:4px;background:#eef2ff;color:#3730a3;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
-                                {{ $siswa->orders_count ?? 0 }}x
+                                {{ $siswa->student_orders_count ?? 0 }}x
                             </span>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $siswa->created_at ? $siswa->created_at->format('d M Y') : '-' }}
+                            {{ $siswa->created_at->format('d M Y') }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <button type="button"
-                                    class="btn-delete-siswa"
+                                    class="tk-action-btn btn-delete-siswa"
                                     data-id="{{ $siswa->id }}"
-                                    data-nama="{{ $siswa->name ?? '' }}"
-                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #fecaca;background:#fef2f2;color:#991b1b;transition:background .15s;"
-                                    onmouseover="this.style.background='#fee2e2'"
-                                    onmouseout="this.style.background='#fef2f2'"
-                                    title="Hapus">
-                                <i class="bi bi-trash" style="font-size:11px;"></i>
+                                    data-nama="{{ $siswa->username }}"
+                                    title="Hapus"
+                                    style="border-color:#fecaca;background:#fef2f2;color:#991b1b">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -139,7 +136,7 @@
 
 {{-- ================================================================
      MODAL KONFIRMASI HAPUS
-=============================================================== --}}
+================================================ --}}
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:360px">
         <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
@@ -172,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
+    /* ── Toast helper ──────────────────────────────────────── */
     function showToast(msg, type = 'success') {
         const colors = type === 'success'
             ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0'
@@ -212,13 +210,20 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menghapus...';
         fetch(`/admin/siswa/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ _method: 'DELETE' })
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}",
+            },
         })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { deleteModal.hide(); showToast('Siswa berhasil dihapus.'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showToast('Gagal menghapus siswa.', 'error'))
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) throw data;
+            deleteModal.hide();
+            showToast(data.message);
+            setTimeout(() => location.reload(), 700);
+        })
+        .catch(err => showToast(err?.message || 'Gagal menghapus siswa.', 'error'))
         .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash3"></i> Hapus'; });
     });
 
@@ -226,7 +231,10 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style>
+    .form-check-input:checked { background-color:#1e2d6b; border-color:#1e2d6b; }
+    .form-check-input:focus   { box-shadow:0 0 0 3px rgba(30,45,107,.12); }
     @keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
     @keyframes spin    { to { transform:rotate(360deg); } }
+    .btn-delete-siswa:hover:not(:disabled) { background:#fee2e2 !important; }
 </style>
 @endpush

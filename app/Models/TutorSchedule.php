@@ -10,4 +10,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TutorSchedule extends Model
 {
     use SoftDeletes;
+
+    public function tutor(){
+        return $this->belongsTo(Tutor::class);
+    }
+    public function scheduleLocks(){
+        return $this->belongsTo(ScheduleLock::class);
+    }
 }

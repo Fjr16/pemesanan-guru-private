@@ -78,21 +78,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // Manajemen Tutor
-    Route::get('/tutor',                     [App\Http\Controllers\Admin\TutorController::class, 'index'])->name('tutor');
-    Route::post('/tutor/{tutor}/verifikasi', [App\Http\Controllers\Admin\TutorController::class, 'verifikasi'])->name('tutor.verifikasi');
-    Route::post('/tutor/{tutor}/tolak',      [App\Http\Controllers\Admin\TutorController::class, 'tolak'])->name('tutor.tolak');
-    Route::delete('/tutor/{tutor}',          [App\Http\Controllers\Admin\TutorController::class, 'destroy'])->name('tutor.destroy');
+    Route::get('/tutor',                         [App\Http\Controllers\Admin\TutorController::class, 'index'])->name('tutor');
+    Route::post('/tutor/{tutor}/verifikasi',     [App\Http\Controllers\Admin\TutorController::class, 'verifikasi'])->name('tutor.verifikasi');
+    Route::post('/tutor/{tutor}/tolak',          [App\Http\Controllers\Admin\TutorController::class, 'tolak'])->name('tutor.tolak');
+    Route::patch('/tutor/{tutor}/toggle-status', [App\Http\Controllers\Admin\TutorController::class, 'toggleStatus'])->name('tutor.toggle-status');
+    Route::delete('/tutor/{tutor}',              [App\Http\Controllers\Admin\TutorController::class, 'destroy'])->name('tutor.destroy');
 
     // Manajemen Siswa
     Route::get('/siswa',           [SiswaController::class, 'index'])->name('siswa');
     Route::delete('/siswa/{user}', [SiswaController::class, 'destroy'])->name('siswa.destroy');
 
-    // Mata Pelajaran (CRUD)
-    Route::get('/mata-pelajaran',        [App\Http\Controllers\Admin\MataPelajaranController::class, 'index'])->name('mapel.index');
-    Route::post('/mata-pelajaran',       [App\Http\Controllers\Admin\MataPelajaranController::class, 'store'])->name('mapel.store');
-    Route::patch('/mata-pelajaran/{mataPelajaran}', [App\Http\Controllers\Admin\MataPelajaranController::class, 'update'])->name('mapel.update');
-    Route::put('/mata-pelajaran/{mataPelajaran}',   [App\Http\Controllers\Admin\MataPelajaranController::class, 'update'])->name('mapel.update.put');
-    Route::delete('/mata-pelajaran/{mataPelajaran}', [App\Http\Controllers\Admin\MataPelajaranController::class, 'destroy'])->name('mapel.destroy');
+    // Mata Pelajaran
+    Route::get('/mata-pelajaran',                    [App\Http\Controllers\Admin\MataPelajaranController::class, 'index'])->name('mapel.index');
+    Route::post('/mata-pelajaran',                   [App\Http\Controllers\Admin\MataPelajaranController::class, 'store'])->name('mapel.store');
+    Route::patch('/mata-pelajaran/{id}/toggle-status', [App\Http\Controllers\Admin\MataPelajaranController::class, 'toggleStatus'])->name('mapel.toggle-status');
 
     // Transaksi
     Route::get('/transaksi',           [App\Http\Controllers\Admin\TransaksiController::class, 'index'])->name('transaksi');
