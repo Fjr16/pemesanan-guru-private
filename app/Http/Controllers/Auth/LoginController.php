@@ -42,7 +42,7 @@ class LoginController extends Controller
         }
 
         // Tutor: cek apakah sudah diverifikasi admin
-        if ($user->role === 'tutor' && $user->tutorProfile?->status === 'pending') {
+        if ($user->role === 'tutor' && $user->tutor?->status === 'pending') {
             Auth::logout();
             return back()->with('warning', 'Akun tutor Anda masih menunggu verifikasi admin. Mohon tunggu konfirmasi via email.');
         }
@@ -50,7 +50,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         return redirect()->intended($this->redirectTo($user->role))
-            ->with('success', 'Selamat datang kembali, ' . $user->name . '!');
+            ->with('success', 'Selamat datang kembali, ' . $user->username . '!');
     }
 
     public function logout(Request $request)

@@ -11,7 +11,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
             <div>
                 <h1 style="font-size:20px;font-weight:600;color:#1a1a2e;margin:0 0 4px;">
-                    Halo, {{ explode(' ', Auth::user()->name)[0] }} 👋
+                    Halo, {{ explode(' ', Auth::user()->student->name ?? Auth::user()->username)[0] }} 👋
                 </h1>
                 <p style="font-size:13px;color:#8890a8;margin:0;">
                     {{ now()->translatedFormat('l, d F Y') }}

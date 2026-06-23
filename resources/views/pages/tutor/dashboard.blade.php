@@ -14,7 +14,7 @@
 {{-- ── Sapaan ───────────────────────────────────────────────── --}}
 <div style="margin-bottom:20px;">
     <h1 style="font-size:18px;font-weight:600;margin:0 0 2px;color:#1a1a2e;">
-        Halo, {{ explode(' ', Auth::user()->name ?? 'Tutor')[0] }} 👋
+        Halo, {{ explode(' ', Auth::user()->tutor->name ?? Auth::user()->username)[0] }} 👋
     </h1>
     <p style="font-size:13px;color:#8890a8;margin:0;">{{ now()->translatedFormat('l, d F Y') }} · Berikut ringkasan aktivitas Anda hari ini.</p>
 </div>
