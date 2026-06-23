@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name')->nullable(false);
             $table->string('deskripsi')->nullable(true);
             $table->string('foto')->nullable(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('order_detail_id')->nullable(false);
             $table->date('tanggal')->nullable(false);
             $table->enum('status', ['locked', 'confirmed', 'release'])->default('locked');
-            $table->timestamp('locked_at')->nullable(false);
-            $table->timestamp('expired_at')->nullable(false);
+            $table->timestamp('locked_at')->nullable(true);
+            $table->timestamp('expired_at')->nullable(true);
             $table->timestamps();
         });
     }
