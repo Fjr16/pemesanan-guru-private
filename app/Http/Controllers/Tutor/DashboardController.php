@@ -3,33 +3,75 @@
 namespace App\Http\Controllers\Tutor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\Payment;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $tutor = Auth::user()->tutor;
+
+        if (!$tutor) {
+            return view('pages.tutor.dashboard', [
+                'stats'          => ['pending' => 0, 'confirmed' => 0, 'completed' => 0, 'avg_rating' => 0, 'total_reviews' => 0, 'pendapatan' => 0],
+                'pendingCount'   => 0,
+                'pendingBookings'=> collect(),
+                'todaySessions'  => collect(),
+            ]);
+        }
+
+        $startOfMonth = Carbon::now()->copy()->startOfMonth();
+
         $stats = [
-            'pending'       => 3,
-            'confirmed'     => 5,
-            'completed'     => 48,
-            'avg_rating'    => 4.8,
-            'total_reviews' => 24,
-            'pendapatan'    => 7200000,
+            'pending'       => Order::where('tutor_id', $tutor->id)->where('status', 'pending')->count(),
+            'confirmed'     => Order::where('tutor_id', $tutor->id)->where('status', 'confirmed')->count(),
+            'completed'     => Order::where('tutor_id', $tutor->id)->where('status', 'complete')->count(),
+            'avg_rating'    => 0,
+            'total_reviews' => 0,
+            'pendapatan'    => Payment::where('status', 'paid')
+                ->whereHas('order', fn($q) => $q->where('tutor_id', $tutor->id))
+                ->whereBetween('created_at', [$startOfMonth, Carbon::now()])
+                ->sum('amount'),
         ];
 
-        $pendingCount = 3;
+        $pendingCount = $stats['pending'];
 
-        $pendingBookings = collect([
-            (object)['id'=>1, 'siswa'=>'Budi Santoso','mapel'=>'Matematika','hari'=>'Senin','jam'=>'09:00','durasi'=>2,'catatan'=>'Mohon bantu saya persiapan ujian minggu depan.','waktu'=>'2 jam lalu'],
-            (object)['id'=>2, 'siswa'=>'Anisa Putri','mapel'=>'Fisika','hari'=>'Selasa','jam'=>'14:00','durasi'=>1.5,'catatan'=>'','waktu'=>'5 jam lalu'],
-            (object)['id'=>3, 'siswa'=>'Rizky Pratama','mapel'=>'Kimia','hari'=>'Rabu','jam'=>'10:00','durasi'=>2,'catatan'=>'Fokus pada materi stoikiometri.','waktu'=>'1 hari lalu'],
-        ]);
+        $pendingBookings = Order::where('tutor_id', $tutor->id)
+            ->where('status', 'pending')
+            ->with(['student.user', 'orderDetails'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function ($o) {
+                $detail = $o->orderDetails->first();
+                return (object)[
+                    'id'     => $o->id,
+                    'siswa'  => $o->student->user->username ?? '-',
+                    'mapel'  => '-',
+                    'hari'   => $detail ? Carbon::parse($detail->tanggal)->translatedFormat('l') : '-',
+                    'jam'    => $detail ? $detail->jam_start : '-',
+                    'durasi' => $detail ? round((Carbon::parse($detail->jam_end)->diffInMinutes(Carbon::parse($detail->jam_start))) / 60, 1) : 0,
+                    'catatan'=> $o->catatan ?? '',
+                    'waktu'  => $o->created_at->diffForHumans(),
+                ];
+            });
 
-        $todaySessions = collect([
-            (object)['siswa'=>'Dewi Lestari','jam'=>'09:00','mapel'=>'Matematika'],
-            (object)['siswa'=>'Farhan Maulana','jam'=>'14:00','mapel'=>'Fisika'],
-        ]);
+        $todaySessions = Order::where('tutor_id', $tutor->id)
+            ->where('status', 'confirmed')
+            ->whereHas('orderDetails', fn($q) => $q->where('tanggal', Carbon::today()->toDateString()))
+            ->with(['student.user', 'orderDetails'])
+            ->get()
+            ->flatMap(fn($o) => $o->orderDetails
+                ->where('tanggal', Carbon::today()->toDateString())
+                ->map(fn($d) => (object)[
+                    'siswa' => $o->student->user->username ?? '-',
+                    'jam'   => $d->jam_start,
+                    'mapel' => '-',
+                ])
+            );
 
         return view('pages.tutor.dashboard', compact('stats', 'pendingCount', 'pendingBookings', 'todaySessions'));
     }

@@ -3,50 +3,68 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return view('pages.siswa.dashboard', [
+                'stats'            => ['total_booking' => 0, 'pending' => 0, 'completed' => 0, 'cancelled' => 0],
+                'pendingCount'     => 0,
+                'upcomingSessions' => collect(),
+                'favoriteTutors'   => collect(),
+            ]);
+        }
+
         $stats = [
-            'total_booking' => 12,
-            'pending'       => 2,
-            'completed'     => 8,
-            'cancelled'     => 2,
+            'total_booking' => Order::where('student_id', $student->id)->count(),
+            'pending'       => Order::where('student_id', $student->id)->where('status', 'pending')->count(),
+            'completed'     => Order::where('student_id', $student->id)->where('status', 'complete')->count(),
+            'cancelled'     => Order::where('student_id', $student->id)->where('status', 'canceled')->count(),
         ];
 
         $pendingCount = $stats['pending'];
 
-        $upcomingSessions = collect([
-            [
-                'tutor_name' => 'Budi Santoso',
-                'mapel'      => 'Matematika',
-                'hari'       => 'Senin',
-                'jam'        => '15:00',
-                'status'     => 'confirmed',
-            ],
-            [
-                'tutor_name' => 'Siti Aminah',
-                'mapel'      => 'Bahasa Inggris',
-                'hari'       => 'Rabu',
-                'jam'        => '10:00',
-                'status'     => 'pending',
-            ],
-            [
-                'tutor_name' => 'Andi Pratama',
-                'mapel'      => 'Fisika',
-                'hari'       => 'Jumat',
-                'jam'        => '13:30',
-                'status'     => 'confirmed',
-            ],
-        ]);
+        $upcomingSessions = Order::where('student_id', $student->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->with(['tutor.user', 'tutor.tutorSubjects.subjectCategory', 'orderDetails'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function ($o) {
+                $detail = $o->orderDetails->first();
+                return [
+                    'tutor_name' => $o->tutor->name ?? '-',
+                    'mapel'      => $o->tutor->tutorSubjects->first()->subjectCategory->name ?? '-',
+                    'hari'       => $detail ? Carbon::parse($detail->tanggal)->translatedFormat('l') : '-',
+                    'jam'        => $detail ? $detail->jam_start : '-',
+                    'status'     => $o->status,
+                ];
+            })
+            ->toArray();
 
-        $favoriteTutors = collect([
-            ['name' => 'Budi Santoso',  'mapel' => 'Matematika',        'total_sesi' => 5],
-            ['name' => 'Siti Aminah',   'mapel' => 'Bahasa Inggris',    'total_sesi' => 4],
-            ['name' => 'Andi Pratama',  'mapel' => 'Fisika',            'total_sesi' => 3],
-        ]);
+        $favoriteTutors = Order::where('student_id', $student->id)
+            ->selectRaw('tutor_id, COUNT(*) as total_sesi')
+            ->groupBy('tutor_id')
+            ->orderByDesc('total_sesi')
+            ->limit(3)
+            ->get()
+            ->map(function ($row) {
+                $tutor = \App\Models\Tutor::with('tutorSubjects.subjectCategory')->find($row->tutor_id);
+                return [
+                    'name'       => $tutor->name ?? '-',
+                    'mapel'      => $tutor->tutorSubjects->first()->subjectCategory->name ?? '-',
+                    'total_sesi' => $row->total_sesi,
+                ];
+            })
+            ->toArray();
 
         return view('pages.siswa.dashboard', compact(
             'stats', 'pendingCount', 'upcomingSessions', 'favoriteTutors'

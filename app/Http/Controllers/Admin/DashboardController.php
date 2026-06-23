@@ -3,47 +3,77 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\SubjectCategory;
+use App\Models\Tutor;
+use App\Models\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        $now = Carbon::now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
+        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
+
+        $bookingThisMonth = Order::whereBetween('created_at', [$startOfMonth, $now])->count();
+        $bookingLastMonth = Order::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        $growth = $bookingLastMonth > 0
+            ? round(($bookingThisMonth - $bookingLastMonth) / $bookingLastMonth * 100)
+            : 0;
+
         $stats = [
-            'total_siswa'       => 128,
-            'total_tutor_aktif' => 45,
-            'tutor_pending'     => 3,
-            'total_booking'     => 312,
-            'booking_bulan_ini' => 47,
-            'sesi_selesai'      => 38,
-            'total_transaksi'   => 24650000,
-            'growth_booking'    => 12,
+            'total_siswa'       => User::where('role', 'siswa')->count(),
+            'total_tutor_aktif' => Tutor::where('status', 'active')->count(),
+            'tutor_pending'     => Tutor::where('status', 'pending')->count(),
+            'total_booking'     => Order::count(),
+            'booking_bulan_ini' => $bookingThisMonth,
+            'sesi_selesai'      => Order::where('status', 'complete')
+                ->whereBetween('created_at', [$startOfMonth, $now])
+                ->count(),
+            'total_transaksi'   => Payment::where('status', 'paid')->sum('amount'),
+            'growth_booking'    => max($growth, 0),
         ];
 
-        $pendingTutors = collect([
-            (object)['id'=>1, 'user'=>(object)['name'=>'Ahmad Rifai','email'=>'ahmad@mail.com'], 'created_at'=>Carbon::now()->subDays(2), 'mataPelajaran'=>collect([(object)['nama'=>'Matematika'],(object)['nama'=>'Fisika']])],
-            (object)['id'=>2, 'user'=>(object)['name'=>'Siti Nurhaliza','email'=>'siti@mail.com'], 'created_at'=>Carbon::now()->subDays(1), 'mataPelajaran'=>collect([(object)['nama'=>'Bahasa Inggris']])],
-            (object)['id'=>3, 'user'=>(object)['name'=>'Dwi Wahyuni','email'=>'dwi@mail.com'], 'created_at'=>Carbon::now(), 'mataPelajaran'=>collect([(object)['nama'=>'Kimia'],(object)['nama'=>'Biologi']])],
-        ]);
+        $pendingTutors = Tutor::where('status', 'pending')
+            ->with(['user', 'tutorSubjects.subjectCategory'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(fn($t) => (object)[
+                'id'            => $t->id,
+                'user'          => (object)['name' => $t->user->username ?? $t->name, 'email' => $t->user->email ?? '-'],
+                'created_at'    => $t->created_at,
+                'mataPelajaran' => $t->tutorSubjects->map(fn($ts) => (object)['nama' => $ts->subjectCategory->name ?? '-']),
+            ]);
 
-        $recentBookings = collect([
-            (object)['id'=>1, 'user'=>(object)['name'=>'Budi Santoso'], 'mataPelajaran'=>(object)['nama'=>'Matematika'], 'status'=>'pending', 'created_at'=>Carbon::now()->subHours(2)],
-            (object)['id'=>2, 'user'=>(object)['name'=>'Anisa Putri'], 'mataPelajaran'=>(object)['nama'=>'Bahasa Inggris'], 'status'=>'confirmed', 'created_at'=>Carbon::now()->subHours(5)],
-            (object)['id'=>3, 'user'=>(object)['name'=>'Rizky Pratama'], 'mataPelajaran'=>(object)['nama'=>'Fisika'], 'status'=>'completed', 'created_at'=>Carbon::now()->subDay()],
-            (object)['id'=>4, 'user'=>(object)['name'=>'Dewi Lestari'], 'mataPelajaran'=>(object)['nama'=>'Kimia'], 'status'=>'pending', 'created_at'=>Carbon::now()->subDays(2)],
-        ]);
+        $recentBookings = Order::with(['student.user', 'tutor.tutorSubjects.subjectCategory'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(fn($o) => (object)[
+                'id'           => $o->id,
+                'user'         => (object)['name' => $o->student->user->username ?? '-'],
+                'mataPelajaran'=> (object)['nama' => $o->tutor->tutorSubjects->first()->subjectCategory->name ?? '-'],
+                'status'       => $o->status,
+                'created_at'   => $o->created_at,
+            ]);
 
-        $popularMapel = collect([
-            (object)['nama'=>'Matematika','bookings_count'=>24],
-            (object)['nama'=>'Bahasa Inggris','bookings_count'=>18],
-            (object)['nama'=>'Fisika','bookings_count'=>11],
-            (object)['nama'=>'Kimia','bookings_count'=>8],
-            (object)['nama'=>'Biologi','bookings_count'=>5],
-        ]);
+        $popularMapel = SubjectCategory::where('is_active', true)
+            ->withCount('tutorSubjects')
+            ->orderByDesc('tutor_subjects_count')
+            ->limit(5)
+            ->get()
+            ->map(fn($sc) => (object)[
+                'nama'          => $sc->name,
+                'bookings_count' => $sc->tutor_subjects_count,
+            ]);
 
         return view('pages.admin.dashboard', compact(
-            'stats','pendingTutors','recentBookings','popularMapel'
+            'stats', 'pendingTutors', 'recentBookings', 'popularMapel'
         ));
     }
 }
