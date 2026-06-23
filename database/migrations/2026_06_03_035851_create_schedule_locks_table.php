@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('tutor_schedule_id')->nullable(false);
             $table->foreignId('order_detail_id')->nullable(false);
             $table->date('tanggal')->nullable(false);
-            $table->string('status', ['locked', 'confirmed', 'release'])->default('locked');
+            $table->enum('status', ['locked', 'confirmed', 'release'])->default('locked');
             $table->timestamp('locked_at')->nullable(false);
             $table->timestamp('expired_at')->nullable(false);
             $table->timestamps();

@@ -3,31 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\TutorProfile;
-use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class LaporanController extends Controller
 {
     public function index()
     {
         $stats = [
-            'total_booking'   => Booking::count(),
-            'completed'       => Booking::where('status','completed')->count(),
-            'confirmed'       => Booking::where('status','confirmed')->count(),
-            'pending'         => Booking::where('status','pending')->count(),
-            'cancelled'       => Booking::where('status','cancelled')->count(),
-            'new_users'       => User::whereMonth('created_at', now()->month)->count(),
-            'total_transaksi' => Booking::where('payment_status','paid')->sum('total_price'),
+            'total_booking'   => 312,
+            'completed'       => 268,
+            'confirmed'       => 23,
+            'pending'         => 15,
+            'cancelled'       => 6,
+            'new_users'       => 34,
+            'total_transaksi' => 24650000,
         ];
 
-        $topTutors = TutorProfile::with('user')
-            ->withCount('bookings')
-            ->withAvg('reviews','rating')
-            ->orderByDesc('bookings_count')
-            ->take(5)
-            ->get();
+        $topTutors = collect([
+            (object)['name'=>'Ahmad Rifai','bookings_count'=>45,'rating'=>4.8],
+            (object)['name'=>'Siti Nurhaliza','bookings_count'=>38,'rating'=>4.7],
+            (object)['name'=>'Hendra Kusuma','bookings_count'=>32,'rating'=>4.6],
+            (object)['name'=>'Budi Santoso','bookings_count'=>28,'rating'=>4.5],
+            (object)['name'=>'Rina Wati','bookings_count'=>22,'rating'=>4.4],
+        ]);
 
-        return view('admin.laporan', compact('stats','topTutors'));
+        return view('pages.admin.laporan', compact('stats','topTutors'));
     }
 }

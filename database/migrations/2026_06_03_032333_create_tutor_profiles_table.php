@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tutor_id')->nullable(false);
             $table->integer('experience_years')->nullable(false);
-            $table->varchar('periode',50)->nullable(false);
+            $table->string('periode',50)->nullable(false);
             $table->integer('jumlah_siswa')->nullable(false);
-            $table->varchar('tempat')->nullable(true);
+            $table->string('tempat')->nullable(true);
             $table->timestamps();
         });
     }

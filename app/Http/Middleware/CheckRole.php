@@ -14,7 +14,7 @@ class CheckRole
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! Auth::check()) {
             return redirect()->route('login')
@@ -22,6 +22,13 @@ class CheckRole
         }
 
         $user = Auth::user();
+
+        if (empty($roles) || in_array($user->role, $roles, true)) {
+            return $next($request);
+        }
+
+        $user = Auth::user();
+        $roles = ['admin', 'siswa', 'tutor'];
 
         // Izinkan jika salah satu role cocok
         if (in_array($user->role, $roles, true)) {

@@ -393,6 +393,7 @@
             background: #1e2d6b;
         }
     </style>
+    @stack('styles')
 </head>
 <body>
 
@@ -406,40 +407,42 @@
         </a>
 
         <div class="tk-user-strip">
-            <div class="tk-user-avatar">SA</div>
+            <div class="tk-user-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'A', 0, 2)) }}</div>
             <div>
-                <div class="tk-user-name">Super Admin</div>
-                <div class="tk-user-role">admin@tutorku.id</div>
+                <div class="tk-user-name">{{ Auth::user()->name ?? 'Admin' }}</div>
+                <div class="tk-user-role">{{ Auth::user()->email ?? '' }}</div>
             </div>
         </div>
 
         <div class="tk-nav-section">Dashboard</div>
-        <a href="#" class="tk-nav-link active">
+        <a href="{{ route('admin.dashboard') }}" class="tk-nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
 
         <div class="tk-nav-section" style="margin-top:4px">Manajemen</div>
-        <a href="{{ route('tutor') }}" class="tk-nav-link">
+        <a href="{{ route('admin.tutor') }}" class="tk-nav-link {{ request()->routeIs('admin.tutor*') ? 'active' : '' }}">
             <i class="bi bi-mortarboard"></i> Tutor
-            <span class="tk-nav-badge">3</span>
         </a>
-        <a href="{{ route('siswa') }}" class="tk-nav-link">
+        <a href="{{ route('admin.siswa') }}" class="tk-nav-link {{ request()->routeIs('admin.siswa*') ? 'active' : '' }}">
             <i class="bi bi-people"></i> Siswa
         </a>
-        <a href="{{ route('mapel') }}" class="tk-nav-link">
+        <a href="{{ route('admin.mapel.index') }}" class="tk-nav-link {{ request()->routeIs('admin.mapel*') ? 'active' : '' }}">
             <i class="bi bi-book"></i> Mata Pelajaran
         </a>
-        <a href="#" class="tk-nav-link">
+        <a href="{{ route('admin.transaksi') }}" class="tk-nav-link {{ request()->routeIs('admin.transaksi*') ? 'active' : '' }}">
             <i class="bi bi-receipt"></i> Transaksi
         </a>
-        <a href="#" class="tk-nav-link">
+        <a href="{{ route('admin.laporan') }}" class="tk-nav-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}">
             <i class="bi bi-bar-chart-line"></i> Laporan
         </a>
 
         <div class="tk-sidebar-footer">
-            <button class="tk-logout-btn">
-                <i class="bi bi-box-arrow-right"></i> Keluar
-            </button>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="tk-logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> Keluar
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -448,12 +451,10 @@
 
         <!-- Topbar -->
         <div class="tk-topbar">
-            <span class="tk-topbar-title">Admin Panel</span>
-            <span class="tk-topbar-subtitle">Tuesday, 09 June 2026 · TutorKu Management System</span>
+            <span class="tk-topbar-title">@yield('page-title', 'Admin Panel')</span>
+            <span class="tk-topbar-subtitle">{{ now()->translatedFormat('l, d F Y') }} · TutorKu Management System</span>
             <div class="tk-topbar-spacer"></div>
-            <button class="tk-topbar-btn">
-                <i class="bi bi-download"></i> Export Laporan
-            </button>
+            @yield('topbar-actions')
         </div>
 
         <!-- Content -->
@@ -468,6 +469,8 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 <script src="{{ asset('js/app.js') }}"></script>
+
+@stack('scripts')
 
 <script>
     flatpickr(".tanggal-input", {

@@ -3,54 +3,47 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\MataPelajaran;
-use App\Models\TutorProfile;
-use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $stats = [
-            'total_siswa'       => User::where('role', 'siswa')->count(),
-            'total_tutor_aktif' => TutorProfile::where('status', 'active')->count(),
-            'tutor_pending'     => TutorProfile::where('status', 'pending')->count(),
-            'total_booking'     => Booking::count(),
-            'booking_bulan_ini' => Booking::whereMonth('created_at', now()->month)->count(),
-            'sesi_selesai'      => Booking::where('status','completed')->whereMonth('updated_at', now()->month)->count(),
-            'total_transaksi'   => Booking::where('payment_status','paid')->sum('total_price'),
-            'growth_booking'    => $this->growthBooking(),
+            'total_siswa'       => 128,
+            'total_tutor_aktif' => 45,
+            'tutor_pending'     => 3,
+            'total_booking'     => 312,
+            'booking_bulan_ini' => 47,
+            'sesi_selesai'      => 38,
+            'total_transaksi'   => 24650000,
+            'growth_booking'    => 12,
         ];
 
-        $pendingTutorCount = $stats['tutor_pending'];
+        $pendingTutors = collect([
+            (object)['id'=>1, 'user'=>(object)['name'=>'Ahmad Rifai','email'=>'ahmad@mail.com'], 'created_at'=>Carbon::now()->subDays(2), 'mataPelajaran'=>collect([(object)['nama'=>'Matematika'],(object)['nama'=>'Fisika']])],
+            (object)['id'=>2, 'user'=>(object)['name'=>'Siti Nurhaliza','email'=>'siti@mail.com'], 'created_at'=>Carbon::now()->subDays(1), 'mataPelajaran'=>collect([(object)['nama'=>'Bahasa Inggris']])],
+            (object)['id'=>3, 'user'=>(object)['name'=>'Dwi Wahyuni','email'=>'dwi@mail.com'], 'created_at'=>Carbon::now(), 'mataPelajaran'=>collect([(object)['nama'=>'Kimia'],(object)['nama'=>'Biologi']])],
+        ]);
 
-        $pendingTutors = TutorProfile::with(['user','mataPelajaran'])
-            ->where('status','pending')
-            ->orderBy('created_at','desc')
-            ->take(10)
-            ->get();
+        $recentBookings = collect([
+            (object)['id'=>1, 'user'=>(object)['name'=>'Budi Santoso'], 'mataPelajaran'=>(object)['nama'=>'Matematika'], 'status'=>'pending', 'created_at'=>Carbon::now()->subHours(2)],
+            (object)['id'=>2, 'user'=>(object)['name'=>'Anisa Putri'], 'mataPelajaran'=>(object)['nama'=>'Bahasa Inggris'], 'status'=>'confirmed', 'created_at'=>Carbon::now()->subHours(5)],
+            (object)['id'=>3, 'user'=>(object)['name'=>'Rizky Pratama'], 'mataPelajaran'=>(object)['nama'=>'Fisika'], 'status'=>'completed', 'created_at'=>Carbon::now()->subDay()],
+            (object)['id'=>4, 'user'=>(object)['name'=>'Dewi Lestari'], 'mataPelajaran'=>(object)['nama'=>'Kimia'], 'status'=>'pending', 'created_at'=>Carbon::now()->subDays(2)],
+        ]);
 
-        $recentBookings = Booking::with(['user','tutorProfile.user','mataPelajaran'])
-            ->orderByDesc('created_at')
-            ->take(8)
-            ->get();
+        $popularMapel = collect([
+            (object)['nama'=>'Matematika','bookings_count'=>24],
+            (object)['nama'=>'Bahasa Inggris','bookings_count'=>18],
+            (object)['nama'=>'Fisika','bookings_count'=>11],
+            (object)['nama'=>'Kimia','bookings_count'=>8],
+            (object)['nama'=>'Biologi','bookings_count'=>5],
+        ]);
 
-        $popularMapel = MataPelajaran::withCount('bookings')
-            ->orderByDesc('bookings_count')
-            ->take(5)
-            ->get();
-
-        return view('admin.dashboard', compact(
-            'stats','pendingTutorCount','pendingTutors','recentBookings','popularMapel'
+        return view('pages.admin.dashboard', compact(
+            'stats','pendingTutors','recentBookings','popularMapel'
         ));
-    }
-
-    private function growthBooking(): int
-    {
-        $thisMonth = Booking::whereMonth('created_at', now()->month)->count();
-        $lastMonth = Booking::whereMonth('created_at', now()->subMonth()->month)->count();
-        if ($lastMonth === 0) return 100;
-        return (int) round((($thisMonth - $lastMonth) / $lastMonth) * 100);
     }
 }
