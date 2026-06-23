@@ -1,382 +1,270 @@
 @extends('layouts.app')
 
-@section('title', 'Pembayaran #' . $booking->id . ' — TutorKu')
+@section('title', 'Pembayaran #' . $order['id'] . ' — TutorKu')
 
 @section('content')
 
-<div class="container py-5" style="max-width:860px;">
+<div style="background:#f8f9fc;min-height:calc(100vh - 200px);padding:32px 0;">
+    <div style="max-width:860px;margin:0 auto;padding:0 20px;">
 
-    {{-- Breadcrumb --}}
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb" style="font-size:.8125rem;">
-            <li class="breadcrumb-item"><a href="{{ route('siswa.dashboard') }}" class="tk-link">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('siswa.pemesanan') }}" class="tk-link">Pemesanan</a></li>
-            <li class="breadcrumb-item active">Pembayaran #{{ $booking->id }}</li>
-        </ol>
-    </nav>
+        {{-- Breadcrumb --}}
+        <nav style="margin-bottom:20px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;">
+                <a href="{{ route('siswa.dashboard') }}" style="color:#1e2d6b;text-decoration:none;">Dashboard</a>
+                <span style="color:#b0b8cc;">/</span>
+                <a href="{{ route('siswa.pemesanan') }}" style="color:#1e2d6b;text-decoration:none;">Pemesanan</a>
+                <span style="color:#b0b8cc;">/</span>
+                <span style="color:#8890a8;">Pembayaran #{{ $order['id'] }}</span>
+            </div>
+        </nav>
 
-    {{-- Header --}}
-    <div class="mb-4">
-        <h1 style="font-size:1.375rem;font-weight:600;margin-bottom:4px;">Konfirmasi Pembayaran</h1>
-        <p class="text-muted mb-0" style="font-size:.875rem;">
-            Booking <strong>#BK-{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</strong> ·
-            {{ $booking->tutorProfile->user->name }}
-        </p>
-    </div>
+        {{-- Header --}}
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:22px;font-weight:600;color:#1a1a2e;margin:0 0 4px;">Konfirmasi Pembayaran</h1>
+            <p style="font-size:13px;color:#8890a8;margin:0;">
+                Booking <strong>#BK-{{ str_pad($order['id'], 6, '0', STR_PAD_LEFT) }}</strong> · {{ $order['tutor_name'] }}
+            </p>
+        </div>
 
-    <div class="row g-4">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start;">
 
-        {{-- LEFT: Metode pembayaran --}}
-        <div class="col-lg-7">
+            {{-- LEFT: Metode & Upload --}}
+            <div style="display:flex;flex-direction:column;gap:14px;">
 
-            {{-- Ringkasan pesanan --}}
-            <div class="tk-card mb-4">
-                <div class="tk-card-header">
-                    <h2 class="tk-card-title">
-                        <i class="bi bi-receipt me-2 text-primary"></i>Ringkasan Pesanan
-                    </h2>
-                </div>
-                <div class="tk-card-body">
-                    <div class="d-flex align-items-center gap-3 p-3 rounded mb-3"
-                         style="background:var(--tk-surface);border:1px solid var(--tk-border-light);">
-                        <div class="tk-tutor-avatar" style="width:44px;height:44px;">
-                            {{ strtoupper(substr($booking->tutorProfile->user->name ?? 'TK', 0, 2)) }}
+                {{-- Ringkasan Pesanan --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                        <i class="bi bi-receipt" style="font-size:15px;color:#1e2d6b;"></i>
+                        <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Ringkasan Pesanan</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:#f8f9fc;border:1px solid #e8eaf0;margin-bottom:14px;">
+                        <div style="width:44px;height:44px;border-radius:50%;background:#1e2d6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0;">
+                            {{ strtoupper(substr($order['tutor_name'], 0, 2)) }}
                         </div>
                         <div>
-                            <div class="fw-500" style="font-size:.9375rem;">
-                                {{ $booking->tutorProfile->user->name }}
-                            </div>
-                            <div class="text-muted" style="font-size:.8125rem;">
-                                {{ $booking->mataPelajaran->nama ?? '-' }}
-                            </div>
+                            <div style="font-size:15px;font-weight:600;color:#1a1a2e;">{{ $order['tutor_name'] }}</div>
+                            <div style="font-size:13px;color:#8890a8;">{{ $order['mapel'] }}</div>
                         </div>
                     </div>
-
-                    @php
-                        $rows = [
-                            ['label' => 'Hari & Waktu', 'value' => $booking->scheduled_day . ', ' . $booking->scheduled_time . ' WIB'],
-                            ['label' => 'Durasi',       'value' => $booking->duration . ' jam'],
-                            ['label' => 'Tarif/jam',    'value' => 'Rp ' . number_format($booking->tutorProfile->hourly_rate, 0, ',', '.')],
-                        ];
-                    @endphp
-
-                    @foreach($rows as $row)
-                        <div class="d-flex justify-content-between py-2"
-                             style="border-top:1px solid var(--tk-border-light);font-size:.875rem;">
-                            <span class="text-muted">{{ $row['label'] }}</span>
-                            <span class="fw-500">{{ $row['value'] }}</span>
-                        </div>
-                    @endforeach
-
-                    <div class="d-flex justify-content-between py-2 mt-1"
-                         style="border-top:2px solid var(--tk-border);font-size:1rem;">
-                        <span class="fw-600">Total Pembayaran</span>
-                        <span class="fw-600" style="color:var(--tk-primary-dark);font-size:1.125rem;">
-                            Rp {{ number_format($booking->total_price, 0, ',', '.') }}
-                        </span>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Hari & Waktu</span>
+                        <span style="font-weight:500;color:#1a1a2e;">{{ $order['hari'] }}, {{ $order['jam'] }} WIB</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Durasi</span>
+                        <span style="font-weight:500;color:#1a1a2e;">{{ $order['durasi'] }} jam</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Tarif/jam</span>
+                        <span style="font-weight:500;color:#1a1a2e;">Rp {{ number_format($order['tarif_per_jam'], 0, ',', '.') }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-size:16px;margin-top:4px;">
+                        <span style="font-weight:600;color:#1a1a2e;">Total Pembayaran</span>
+                        <span style="font-weight:700;color:#1e2d6b;font-size:18px;">Rp {{ number_format($order['total'], 0, ',', '.') }}</span>
                     </div>
                 </div>
-            </div>
 
-            {{-- Pilih metode pembayaran --}}
-            <div class="tk-card mb-4">
-                <div class="tk-card-header">
-                    <h2 class="tk-card-title">
-                        <i class="bi bi-credit-card me-2 text-primary"></i>Metode Pembayaran
-                    </h2>
-                </div>
-                <div class="tk-card-body">
-                    <div class="d-flex flex-column gap-2" id="paymentMethods">
+                {{-- Pilih Metode Pembayaran --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                        <i class="bi bi-credit-card" style="font-size:15px;color:#1e2d6b;"></i>
+                        <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Metode Pembayaran</span>
+                    </div>
 
+                    <div style="display:flex;flex-direction:column;gap:8px;" id="paymentMethods">
                         {{-- Transfer Bank --}}
-                        <label class="pay-method-option active" for="pm_transfer">
-                            <input type="radio" name="payment_method" id="pm_transfer"
-                                   value="transfer" class="d-none" checked>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="pay-method-icon">
-                                    <i class="bi bi-bank2"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-500" style="font-size:.9rem;">Transfer Bank</div>
-                                    <div class="text-muted" style="font-size:.75rem;">BCA, BNI, BRI, Mandiri</div>
-                                </div>
+                        <label id="pm_label_transfer" style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #1e2d6b;border-radius:10px;cursor:pointer;background:#eef2ff;transition:all .15s;">
+                            <input type="radio" name="payment_method" value="transfer" checked style="display:none;">
+                            <div style="width:40px;height:40px;border-radius:8px;background:#1e2d6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                                <i class="bi bi-bank2"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">Transfer Bank</div>
+                                <div style="font-size:12px;color:#8890a8;">BCA, BNI, BRI, Mandiri</div>
                             </div>
                         </label>
 
                         {{-- E-Wallet --}}
-                        <label class="pay-method-option" for="pm_ewallet">
-                            <input type="radio" name="payment_method" id="pm_ewallet"
-                                   value="ewallet" class="d-none">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="pay-method-icon">
-                                    <i class="bi bi-phone"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-500" style="font-size:.9rem;">E-Wallet</div>
-                                    <div class="text-muted" style="font-size:.75rem;">GoPay, OVO, Dana, ShopeePay</div>
-                                </div>
+                        <label id="pm_label_ewallet" style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e8eaf0;border-radius:10px;cursor:pointer;background:#fff;transition:all .15s;">
+                            <input type="radio" name="payment_method" value="ewallet" style="display:none;">
+                            <div style="width:40px;height:40px;border-radius:8px;background:#eef2ff;color:#1e2d6b;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                                <i class="bi bi-phone"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">E-Wallet</div>
+                                <div style="font-size:12px;color:#8890a8;">GoPay, OVO, Dana, ShopeePay</div>
                             </div>
                         </label>
 
                         {{-- QRIS --}}
-                        <label class="pay-method-option" for="pm_qris">
-                            <input type="radio" name="payment_method" id="pm_qris"
-                                   value="qris" class="d-none">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="pay-method-icon">
-                                    <i class="bi bi-qr-code"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-500" style="font-size:.9rem;">QRIS</div>
-                                    <div class="text-muted" style="font-size:.75rem;">Scan QR dari aplikasi apapun</div>
-                                </div>
+                        <label id="pm_label_qris" style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e8eaf0;border-radius:10px;cursor:pointer;background:#fff;transition:all .15s;">
+                            <input type="radio" name="payment_method" value="qris" style="display:none;">
+                            <div style="width:40px;height:40px;border-radius:8px;background:#eef2ff;color:#1e2d6b;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                                <i class="bi bi-qr-code"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">QRIS</div>
+                                <div style="font-size:12px;color:#8890a8;">Scan QR dari aplikasi apapun</div>
                             </div>
                         </label>
-
                     </div>
 
-                    {{-- Detail metode (dinamis) --}}
-                    <div id="methodDetail" class="mt-3">
+                    {{-- Detail Metode --}}
+                    <div style="margin-top:14px;">
 
-                        {{-- Transfer detail --}}
-                        <div id="detail_transfer"
-                             style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);
-                                    border:1px solid var(--tk-border);padding:1rem;">
-                            <div class="text-muted mb-2" style="font-size:.8rem;font-weight:500;">
-                                NOMOR REKENING TUJUAN
-                            </div>
+                        {{-- Transfer Detail --}}
+                        <div id="detail_transfer" style="background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:14px;">
+                            <div style="font-size:11px;color:#8890a8;font-weight:600;margin-bottom:10px;">NOMOR REKENING TUJUAN</div>
                             @foreach([
-                                ['bank'=>'BCA',     'no'=>'1234 5678 9012', 'an'=>'TutorKu Indonesia'],
-                                ['bank'=>'BNI',     'no'=>'9876 5432 1098', 'an'=>'TutorKu Indonesia'],
-                                ['bank'=>'BRI',     'no'=>'0011 2233 4455', 'an'=>'TutorKu Indonesia'],
+                                ['bank'=>'BCA', 'no'=>'1234 5678 9012', 'an'=>'TutorKu Indonesia'],
+                                ['bank'=>'BNI', 'no'=>'9876 5432 1098', 'an'=>'TutorKu Indonesia'],
+                                ['bank'=>'BRI', 'no'=>'0011 2233 4455', 'an'=>'TutorKu Indonesia'],
                             ] as $rek)
-                                <div class="d-flex align-items-center justify-content-between py-2
-                                     {{ !$loop->last ? 'border-bottom' : '' }}"
-                                     style="border-color:var(--tk-border-light)!important;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;{{ !$loop->last ? 'border-bottom:1px solid #e8eaf0;' : '' }}">
                                     <div>
-                                        <div class="fw-500" style="font-size:.875rem;">
-                                            {{ $rek['bank'] }} — {{ $rek['no'] }}
-                                        </div>
-                                        <div class="text-muted" style="font-size:.75rem;">a/n {{ $rek['an'] }}</div>
+                                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;">{{ $rek['bank'] }} — {{ $rek['no'] }}</div>
+                                        <div style="font-size:12px;color:#8890a8;">a/n {{ $rek['an'] }}</div>
                                     </div>
-                                    <button type="button"
-                                            class="btn-copy-rek"
-                                            data-text="{{ str_replace(' ', '', $rek['no']) }}"
-                                            style="border:none;background:transparent;
-                                                   color:var(--tk-primary);font-size:.75rem;font-weight:500;cursor:pointer;">
-                                        <i class="bi bi-copy me-1"></i>Salin
+                                    <button type="button" class="btn-copy-rek" data-text="{{ str_replace(' ', '', $rek['no']) }}"
+                                        style="border:none;background:transparent;color:#1e2d6b;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                                        <i class="bi bi-copy"></i> Salin
                                     </button>
                                 </div>
                             @endforeach
-                            <div class="mt-2 d-flex align-items-center gap-2"
-                                 style="background:var(--tk-warning-bg);border:1px solid var(--tk-warning-border);
-                                        border-radius:var(--tk-radius);padding:.5rem .75rem;">
-                                <i class="bi bi-exclamation-triangle-fill"
-                                   style="color:var(--tk-warning-text);font-size:.875rem;"></i>
-                                <span style="font-size:.8rem;color:var(--tk-warning-text);">
-                                    Transfer tepat sejumlah
-                                    <strong>Rp {{ number_format($booking->total_price, 0, ',', '.') }}</strong>
-                                    untuk verifikasi otomatis.
+                            <div style="margin-top:10px;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;">
+                                <i class="bi bi-exclamation-triangle-fill" style="color:#b45309;font-size:14px;flex-shrink:0;"></i>
+                                <span style="font-size:12px;color:#92400e;">
+                                    Transfer tepat sejumlah <strong>Rp {{ number_format($order['total'], 0, ',', '.') }}</strong> untuk verifikasi otomatis.
                                 </span>
                             </div>
                         </div>
 
-                        {{-- E-Wallet detail (hidden default) --}}
-                        <div id="detail_ewallet" style="display:none;background:var(--tk-surface);
-                             border-radius:var(--tk-radius-lg);border:1px solid var(--tk-border);padding:1rem;">
-                            <div class="text-muted mb-2" style="font-size:.8rem;font-weight:500;">
-                                NOMOR TUJUAN E-WALLET
-                            </div>
-                            <div class="fw-500 mb-1" style="font-size:1rem;">0812 3456 7890</div>
-                            <div class="text-muted" style="font-size:.75rem;">a/n TutorKu Indonesia (GoPay/OVO/Dana)</div>
+                        {{-- E-Wallet Detail --}}
+                        <div id="detail_ewallet" style="display:none;background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:14px;">
+                            <div style="font-size:11px;color:#8890a8;font-weight:600;margin-bottom:10px;">NOMOR TUJUAN E-WALLET</div>
+                            <div style="font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">0812 3456 7890</div>
+                            <div style="font-size:12px;color:#8890a8;">a/n TutorKu Indonesia (GoPay/OVO/Dana)</div>
                         </div>
 
-                        {{-- QRIS detail (hidden default) --}}
-                        <div id="detail_qris" style="display:none;text-align:center;
-                             background:var(--tk-surface);border-radius:var(--tk-radius-lg);
-                             border:1px solid var(--tk-border);padding:1.5rem;">
-                            <div style="width:120px;height:120px;background:var(--tk-border);
-                                        border-radius:var(--tk-radius);margin:0 auto 1rem;
-                                        display:flex;align-items:center;justify-content:center;">
-                                <i class="bi bi-qr-code" style="font-size:3rem;color:var(--tk-text-light);"></i>
+                        {{-- QRIS Detail --}}
+                        <div id="detail_qris" style="display:none;text-align:center;background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:24px;">
+                            <div style="width:120px;height:120px;background:#e8eaf0;border-radius:10px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-qr-code" style="font-size:48px;color:#b0b8cc;"></i>
                             </div>
-                            <div class="text-muted" style="font-size:.8rem;">
-                                Scan QR ini menggunakan aplikasi e-wallet Anda
-                            </div>
+                            <div style="font-size:13px;color:#8890a8;">Scan QR ini menggunakan aplikasi e-wallet Anda</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- Upload bukti transfer --}}
-            <div class="tk-card">
-                <div class="tk-card-header">
-                    <h2 class="tk-card-title">
-                        <i class="bi bi-upload me-2 text-primary"></i>Upload Bukti Pembayaran
-                    </h2>
-                </div>
-                <div class="tk-card-body">
-                    <p class="text-muted small mb-3">
-                        Upload screenshot/foto bukti transfer setelah melakukan pembayaran.
-                        Admin akan memverifikasi dalam 1×24 jam.
+                {{-- Upload Bukti Bayar --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                        <i class="bi bi-upload" style="font-size:15px;color:#1e2d6b;"></i>
+                        <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Upload Bukti Pembayaran</span>
+                    </div>
+                    <p style="font-size:13px;color:#8890a8;margin:0 0 14px;">
+                        Upload screenshot/foto bukti transfer setelah melakukan pembayaran. Admin akan memverifikasi dalam 1×24 jam.
                     </p>
 
                     <div id="uploadDropzone"
-                         style="border:2px dashed var(--tk-border);border-radius:var(--tk-radius-lg);
-                                padding:2rem;text-align:center;cursor:pointer;transition:all .2s;">
-                        <i class="bi bi-cloud-upload text-muted" style="font-size:2rem;"></i>
-                        <p class="text-muted small mt-2 mb-1">Drag & drop atau klik untuk memilih file</p>
-                        <p class="text-muted" style="font-size:.75rem;">PNG, JPG, PDF — maks 5MB</p>
-                        <input type="file" id="buktiBayar" accept="image/*,.pdf" class="d-none">
+                         style="border:2px dashed #d0d5e8;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;">
+                        <i class="bi bi-cloud-upload" style="font-size:32px;color:#8890a8;display:block;margin-bottom:8px;"></i>
+                        <p style="font-size:13px;color:#8890a8;margin:0 0 4px;">Drag & drop atau klik untuk memilih file</p>
+                        <p style="font-size:11px;color:#b0b8cc;margin:0;">PNG, JPG, PDF — maks 5MB</p>
+                        <input type="file" id="buktiBayar" accept="image/*,.pdf" style="display:none;">
                     </div>
 
-                    <div id="filePreview" class="mt-3" style="display:none;">
-                        <div class="d-flex align-items-center gap-3 p-2 rounded"
-                             style="background:var(--tk-success-bg);border:1px solid var(--tk-success-border);">
-                            <i class="bi bi-file-earmark-check"
-                               style="font-size:1.25rem;color:var(--tk-success-text);"></i>
-                            <div class="flex-1 min-w-0">
-                                <div id="fileName" class="fw-500 text-truncate"
-                                     style="font-size:.875rem;color:var(--tk-success-text);"></div>
-                                <div id="fileSize" class="text-muted" style="font-size:.75rem;"></div>
+                    <div id="filePreview" style="display:none;margin-top:14px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;">
+                            <i class="bi bi-file-earmark-check" style="font-size:18px;color:#15803d;"></i>
+                            <div style="flex:1;min-width:0;">
+                                <div id="fileName" style="font-size:13px;font-weight:500;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                                <div id="fileSize" style="font-size:11px;color:#8890a8;"></div>
                             </div>
-                            <button type="button" id="removeFile" class="btn-close btn-close-sm"></button>
+                            <button type="button" id="removeFile" style="border:none;background:transparent;font-size:18px;color:#8890a8;cursor:pointer;">&times;</button>
                         </div>
                     </div>
 
                     <button type="button" id="submitPayment"
-                            class="tk-btn-primary mt-4">
+                        style="margin-top:18px;background:#1e2d6b;color:#fff;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
                         <i class="bi bi-send-check"></i> Konfirmasi Pembayaran
                     </button>
                 </div>
             </div>
 
-        </div>
+            {{-- RIGHT: Status & Timeline --}}
+            <div style="display:flex;flex-direction:column;gap:14px;">
 
-        {{-- RIGHT: Info & status --}}
-        <div class="col-lg-5">
-
-            {{-- Status booking --}}
-            <div class="tk-card mb-4">
-                <div class="tk-card-body">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <span class="tk-badge tk-badge-confirmed">
-                            <i class="bi bi-patch-check-fill"></i> Dikonfirmasi Tutor
-                        </span>
+                {{-- Status Booking --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:12px;background:#eff6ff;color:#1e40af;font-size:12px;font-weight:600;margin-bottom:12px;">
+                        <i class="bi bi-patch-check-fill"></i> Dikonfirmasi Tutor
                     </div>
-                    <p class="text-muted small mb-0">
+                    <p style="font-size:13px;color:#8890a8;margin:0;">
                         Tutor telah mengkonfirmasi jadwal ini. Selesaikan pembayaran untuk mengunci sesi Anda.
                     </p>
                 </div>
-            </div>
 
-            {{-- Timeline --}}
-            <div class="tk-card mb-4">
-                <div class="tk-card-header">
-                    <h2 class="tk-card-title" style="font-size:.9rem;">
-                        <i class="bi bi-list-check me-2 text-primary"></i>Alur Pembayaran
-                    </h2>
-                </div>
-                <div class="tk-card-body">
+                {{-- Timeline --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                        <i class="bi bi-list-check" style="font-size:15px;color:#1e2d6b;"></i>
+                        <span style="font-size:13px;font-weight:600;color:#1a1a2e;">Alur Pembayaran</span>
+                    </div>
                     @php
                         $steps = [
-                            ['icon'=>'bi-check-circle-fill', 'color'=>'var(--tk-primary)',      'label'=>'Booking dibuat',          'done'=>true],
-                            ['icon'=>'bi-check-circle-fill', 'color'=>'var(--tk-success-text)', 'label'=>'Dikonfirmasi tutor',      'done'=>true],
-                            ['icon'=>'bi-circle-half',       'color'=>'var(--tk-warning-text)', 'label'=>'Menunggu pembayaran',     'done'=>false],
-                            ['icon'=>'bi-circle',            'color'=>'var(--tk-text-light)',   'label'=>'Pembayaran terverifikasi','done'=>false],
-                            ['icon'=>'bi-circle',            'color'=>'var(--tk-text-light)',   'label'=>'Sesi siap dimulai',       'done'=>false],
+                            ['icon'=>'bi-check-circle-fill', 'color'=>'#1e2d6b', 'label'=>'Booking dibuat', 'done'=>true],
+                            ['icon'=>'bi-check-circle-fill', 'color'=>'#15803d', 'label'=>'Dikonfirmasi tutor', 'done'=>true],
+                            ['icon'=>'bi-circle-half', 'color'=>'#b45309', 'label'=>'Menunggu pembayaran', 'done'=>false, 'active'=>true],
+                            ['icon'=>'bi-circle', 'color'=>'#d0d5e8', 'label'=>'Pembayaran terverifikasi', 'done'=>false],
+                            ['icon'=>'bi-circle', 'color'=>'#d0d5e8', 'label'=>'Sesi siap dimulai', 'done'=>false],
                         ];
                     @endphp
-                    @foreach($steps as $i => $step)
-                        <div class="d-flex align-items-center gap-3
-                             {{ !$loop->last ? 'mb-2' : '' }}">
-                            <i class="bi {{ $step['icon'] }}" style="color:{{ $step['color'] }};font-size:1rem;"></i>
-                            <span style="font-size:.8125rem;
-                                         color:{{ $step['done'] ? 'var(--tk-text)' : 'var(--tk-text-light)' }};
-                                         font-weight:{{ $step['done'] ? '500' : '400' }};">
+                    @foreach($steps as $step)
+                        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;">
+                            <i class="bi {{ $step['icon'] }}" style="font-size:16px;color:{{ $step['color'] }};"></i>
+                            <span style="font-size:13px;color:{{ $step['done'] || !empty($step['active']) ? '#1a1a2e' : '#b0b8cc' }};font-weight:{{ !empty($step['active']) ? '600' : '400' }};">
                                 {{ $step['label'] }}
+                                @if(!empty($step['active']))
+                                    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f59e0b;margin-left:6px;animation:pulse 1.5s infinite;"></span>
+                                @endif
                             </span>
                         </div>
                     @endforeach
                 </div>
-            </div>
 
-            {{-- Notifikasi WA --}}
-            <div class="tk-card"
-                 style="background:var(--tk-success-bg);border-color:var(--tk-success-border);">
-                <div class="tk-card-body">
-                    <div class="d-flex gap-3">
-                        <i class="bi bi-whatsapp"
-                           style="font-size:1.5rem;color:var(--tk-success-text);flex-shrink:0;"></i>
+                {{-- WhatsApp --}}
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;gap:12px;">
+                        <i class="bi bi-whatsapp" style="font-size:22px;color:#15803d;flex-shrink:0;"></i>
                         <div>
-                            <div class="fw-500 mb-1" style="font-size:.875rem;color:var(--tk-success-text);">
-                                Konfirmasi via WhatsApp
-                            </div>
-                            <p style="font-size:.8rem;color:var(--tk-success-text);opacity:.8;margin:0;">
-                                Setelah pembayaran terverifikasi, detail sesi akan dikirim ke WhatsApp Anda
-                                <strong>{{ Auth::user()->phone }}</strong> secara otomatis.
+                            <div style="font-size:13px;font-weight:600;color:#15803d;margin-bottom:4px;">Konfirmasi via WhatsApp</div>
+                            <p style="font-size:12px;color:#15803d;opacity:.7;margin:0;line-height:1.6;">
+                                Setelah pembayaran terverifikasi, detail sesi akan dikirim ke WhatsApp Anda secara otomatis.
                             </p>
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 </div>
 
-@endsection
-
-
-@push('styles')
 <style>
-.pay-method-option {
-    display: flex;
-    align-items: center;
-    padding: .875rem 1rem;
-    border: 1px solid var(--tk-border);
-    border-radius: var(--tk-radius-lg);
-    cursor: pointer;
-    transition: all .15s;
-    background: #fff;
-}
-.pay-method-option:hover { border-color: var(--tk-primary-100); background: var(--tk-primary-50); }
-.pay-method-option.active { border-color: var(--tk-primary); background: var(--tk-primary-50); }
-
-.pay-method-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--tk-primary-50);
-    border-radius: var(--tk-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    color: var(--tk-primary);
-    flex-shrink: 0;
-}
-.pay-method-option.active .pay-method-icon {
-    background: var(--tk-primary);
-    color: #fff;
-}
-
-#uploadDropzone:hover {
-    border-color: var(--tk-primary-light);
-    background: var(--tk-primary-50);
-}
-#uploadDropzone.dragover {
-    border-color: var(--tk-primary);
-    background: var(--tk-primary-50);
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
 }
 </style>
-@endpush
 
+@endsection
 
 @push('scripts')
 <script>
 $(document).ready(function () {
 
-    const BOOKING_ID = {{ $booking->id }};
+    const BOOKING_ID = {{ $order['id'] }};
     let selectedFile  = null;
     let selectedMethod = 'transfer';
 
@@ -384,11 +272,18 @@ $(document).ready(function () {
     $('input[name="payment_method"]').on('change', function () {
         selectedMethod = $(this).val();
 
-        // Toggle active class
-        $('.pay-method-option').removeClass('active');
-        $(this).closest('.pay-method-option').addClass('active');
+        // Reset all labels
+        $('#pm_label_transfer, #pm_label_ewallet, #pm_label_qris').css({
+            'border-color': '#e8eaf0',
+            'background': '#fff'
+        }).find('div:first-child').css({ 'background': '#eef2ff', 'color': '#1e2d6b' });
 
-        // Tampilkan detail yang sesuai
+        // Active label
+        const $active = $(this).closest('label');
+        $active.css({ 'border-color': '#1e2d6b', 'background': '#eef2ff' })
+               .find('div:first-child').css({ 'background': '#1e2d6b', 'color': '#fff' });
+
+        // Show/hide detail
         $('#detail_transfer, #detail_ewallet, #detail_qris').hide();
         $(`#detail_${selectedMethod}`).show();
     });
@@ -397,7 +292,9 @@ $(document).ready(function () {
     $(document).on('click', '.btn-copy-rek', function () {
         const text = $(this).data('text');
         navigator.clipboard.writeText(text).then(() => {
-            showToast('Nomor rekening disalin!', 'success');
+            const $btn = $(this);
+            $btn.html('<i class="bi bi-check"></i> Disalin!');
+            setTimeout(() => $btn.html('<i class="bi bi-copy"></i> Salin'), 2000);
         });
     });
 
@@ -406,12 +303,12 @@ $(document).ready(function () {
 
     $('#uploadDropzone').on('dragover', function (e) {
         e.preventDefault();
-        $(this).addClass('dragover');
+        $(this).css({ 'border-color': '#1e2d6b', 'background': '#eef2ff' });
     }).on('dragleave', function () {
-        $(this).removeClass('dragover');
+        $(this).css({ 'border-color': '#d0d5e8', 'background': 'transparent' });
     }).on('drop', function (e) {
         e.preventDefault();
-        $(this).removeClass('dragover');
+        $(this).css({ 'border-color': '#d0d5e8', 'background': 'transparent' });
         const file = e.originalEvent.dataTransfer.files[0];
         if (file) handleFile(file);
     });
@@ -421,9 +318,9 @@ $(document).ready(function () {
     });
 
     function handleFile(file) {
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-            showToast('Ukuran file maksimal 5MB.', 'error');
+            alert('Ukuran file maksimal 5MB.');
             return;
         }
         selectedFile = file;
@@ -443,18 +340,18 @@ $(document).ready(function () {
     // ── Submit pembayaran ────────────────────────────────────
     $('#submitPayment').on('click', function () {
         if (!selectedFile) {
-            showToast('Upload bukti pembayaran terlebih dahulu.', 'warning');
+            alert('Upload bukti pembayaran terlebih dahulu.');
             return;
         }
 
         const $btn = $(this);
         $btn.prop('disabled', true)
-            .html('<span class="tk-spinner me-2" style="width:14px;height:14px;border-width:2px;"></span>Memproses...');
+            .html('<span style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;"></span> Memproses...');
 
         const formData = new FormData();
-        formData.append('_token',           $('meta[name="csrf-token"]').attr('content'));
-        formData.append('payment_method',   selectedMethod);
-        formData.append('bukti_bayar',      selectedFile);
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        formData.append('payment_method', selectedMethod);
+        formData.append('bukti_bayar', selectedFile);
 
         $.ajax({
             url: `/siswa/pemesanan/${BOOKING_ID}/bayar`,
@@ -463,13 +360,10 @@ $(document).ready(function () {
             processData: false,
             contentType: false,
             success: function (res) {
-                showToast('Bukti pembayaran berhasil dikirim!', 'success');
-                setTimeout(() => {
-                    window.location.href = res.redirect || `/siswa/pemesanan/${BOOKING_ID}/sukses`;
-                }, 1200);
+                window.location.href = res.redirect || `/siswa/pemesanan/${BOOKING_ID}/sukses`;
             },
             error: function (xhr) {
-                showToast(xhr.responseJSON?.message || 'Gagal mengirim bukti pembayaran.', 'error');
+                alert(xhr.responseJSON?.message || 'Gagal mengirim bukti pembayaran.');
                 $btn.prop('disabled', false)
                     .html('<i class="bi bi-send-check"></i> Konfirmasi Pembayaran');
             }
@@ -478,4 +372,7 @@ $(document).ready(function () {
 
 });
 </script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 @endpush

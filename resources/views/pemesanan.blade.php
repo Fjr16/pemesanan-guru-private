@@ -258,7 +258,7 @@
         </div>
 
         {{-- Pagination --}}
-        @if($bookings->hasPages())
+        @if(isset($bookings) && $bookings->hasPages())
             <div class="d-flex justify-content-center mt-4">
                 {{ $bookings->appends(request()->query())->links() }}
             </div>

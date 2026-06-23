@@ -143,11 +143,11 @@
                 </div>
 
                 {{-- Pagination --}}
-                @if($tutors->hasPages())
+                {{-- @if(isset($tutors) && $tutors->hasPages())
                     <div class="d-flex justify-content-center mt-5">
                         {{ $tutors->links('components.pagination') }}
                     </div>
-                @endif
+                @endif --}}
             @else
                 {{-- Skeleton loading awal --}}
                 <div class="row g-4" id="skeletonGrid">

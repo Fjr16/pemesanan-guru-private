@@ -4,9 +4,11 @@
 
 @section('content')
 
+@php $rating = round($tutor->reviews_avg_rating ?? 0, 1); @endphp
+
 {{-- ================================================================
      PROFIL HEADER
-================================================================ --}}
+=============================================================== --}}
 <div style="background:var(--tk-primary-dark);padding:2.5rem 0 0;">
     <div class="container">
         <div class="row align-items-end g-4 pb-0">
@@ -40,7 +42,6 @@
                         <div class="d-flex align-items-center flex-wrap gap-3">
                             <div class="d-flex align-items-center gap-1">
                                 <span class="tk-stars">
-                                    @php $rating = round($tutor->reviews_avg_rating ?? 0, 1); @endphp
                                     @for($i = 1; $i <= 5; $i++)
                                         @if($i <= floor($rating))
                                             <i class="bi bi-star-fill"></i>

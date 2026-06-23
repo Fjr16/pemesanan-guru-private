@@ -3,55 +3,58 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class PembayaranController extends Controller
 {
-    public function show(Booking $booking)
+    public function show($id)
     {
-        abort_if($booking->user_id !== Auth::id(), 403);
-        abort_if($booking->status !== 'confirmed', 404, 'Booking belum dikonfirmasi tutor.');
+        $order = [
+            'id'            => (int) $id,
+            'tutor_name'    => 'Budi Santoso',
+            'tutor_email'   => 'budi@tutor.com',
+            'mapel'         => 'Matematika',
+            'hari'          => 'Senin',
+            'jam'           => '15:00',
+            'durasi'        => 2,
+            'tarif_per_jam' => 100000,
+            'total'         => 200000,
+            'status'        => 'confirmed',
+            'created_at'    => '20 Jun 2026',
+        ];
 
-        $booking->load(['tutorProfile.user', 'mataPelajaran']);
-
-        return view('siswa.pembayaran', compact('booking'));
+        return view('pages.siswa.pembayaran', compact('order'));
     }
 
-    public function process(Request $request, Booking $booking)
+    public function process(Request $request, $id)
     {
-        abort_if($booking->user_id !== Auth::id(), 403);
-
         $request->validate([
             'payment_method' => ['required', 'in:transfer,ewallet,qris'],
             'bukti_bayar'    => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ]);
 
-        // Simpan file bukti pembayaran
-        $path = $request->file('bukti_bayar')
-            ->store('bukti-pembayaran/' . $booking->id, 'public');
-
-        $booking->update([
-            'payment_method'  => $request->payment_method,
-            'bukti_bayar'     => $path,
-            'payment_status'  => 'pending_verification',
-        ]);
-
-        // Kirim notifikasi email ke admin (via Event/Job — pasang setelah model siap)
-        // event(new PaymentUploaded($booking));
-
         return response()->json([
             'message'  => 'Bukti pembayaran berhasil diunggah.',
-            'redirect' => route('siswa.pembayaran.sukses', $booking->id),
+            'redirect' => route('siswa.pembayaran.sukses', $id),
         ]);
     }
 
-    public function success(Booking $booking)
+    public function success($id)
     {
-        abort_if($booking->user_id !== Auth::id(), 403);
-        $booking->load(['tutorProfile.user', 'mataPelajaran']);
-        return view('siswa.pembayaran-sukses', compact('booking'));
+        $order = [
+            'id'            => (int) $id,
+            'tutor_name'    => 'Budi Santoso',
+            'tutor_email'   => 'budi@tutor.com',
+            'mapel'         => 'Matematika',
+            'hari'          => 'Senin',
+            'jam'           => '15:00',
+            'durasi'        => 2,
+            'tarif_per_jam' => 100000,
+            'total'         => 200000,
+            'status'        => 'confirmed',
+            'created_at'    => '20 Jun 2026',
+        ];
+
+        return view('pages.siswa.pembayaran-sukses', compact('order'));
     }
 }

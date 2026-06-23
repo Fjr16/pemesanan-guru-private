@@ -3,53 +3,54 @@
 @section('title', 'Pembayaran Berhasil — TutorKu')
 
 @section('content')
-<div class="container py-5" style="max-width:520px;">
-    <div class="tk-card text-center">
-        <div class="tk-card-body py-5 px-4">
+
+<div style="background:#f8f9fc;min-height:calc(100vh - 200px);padding:48px 0;">
+    <div style="max-width:520px;margin:0 auto;padding:0 20px;">
+
+        <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:40px 32px;text-align:center;">
 
             {{-- Icon sukses --}}
-            <div style="width:72px;height:72px;background:var(--tk-success-bg);border-radius:50%;
-                        display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
-                <i class="bi bi-check-lg" style="font-size:2rem;color:var(--tk-success-text);"></i>
+            <div style="width:72px;height:72px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <i class="bi bi-check-lg" style="font-size:32px;color:#15803d;"></i>
             </div>
 
-            <h2 class="fw-600 mb-2" style="font-size:1.25rem;">Bukti Pembayaran Terkirim!</h2>
-            <p class="text-muted mb-4" style="font-size:.9rem;">
+            <h2 style="font-size:20px;font-weight:600;color:#1a1a2e;margin:0 0 8px;">Bukti Pembayaran Terkirim!</h2>
+            <p style="font-size:14px;color:#8890a8;margin:0 0 24px;line-height:1.6;">
                 Bukti pembayaran Anda sedang diverifikasi admin.<br>
                 Konfirmasi detail sesi akan dikirim via <strong>email</strong> dan <strong>WhatsApp</strong>.
             </p>
 
             {{-- Ringkasan --}}
-            <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);
-                        border:1px solid var(--tk-border);padding:1rem;text-align:left;margin-bottom:1.5rem;">
-                <div class="d-flex justify-content-between py-1" style="font-size:.875rem;">
-                    <span class="text-muted">Tutor</span>
-                    <span class="fw-500">{{ $booking->tutorProfile->user->name }}</span>
+            <div style="background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:16px;text-align:left;margin-bottom:24px;">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #e8eaf0;">
+                    <span style="color:#8890a8;">Tutor</span>
+                    <span style="font-weight:500;color:#1a1a2e;">{{ $order['tutor_name'] }}</span>
                 </div>
-                <div class="d-flex justify-content-between py-1" style="font-size:.875rem;">
-                    <span class="text-muted">Mata Pelajaran</span>
-                    <span class="fw-500">{{ $booking->mataPelajaran->nama ?? '-' }}</span>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #e8eaf0;">
+                    <span style="color:#8890a8;">Mata Pelajaran</span>
+                    <span style="font-weight:500;color:#1a1a2e;">{{ $order['mapel'] }}</span>
                 </div>
-                <div class="d-flex justify-content-between py-1" style="font-size:.875rem;">
-                    <span class="text-muted">Jadwal</span>
-                    <span class="fw-500">{{ $booking->scheduled_day }}, {{ $booking->scheduled_time }} WIB</span>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #e8eaf0;">
+                    <span style="color:#8890a8;">Jadwal</span>
+                    <span style="font-weight:500;color:#1a1a2e;">{{ $order['hari'] }}, {{ $order['jam'] }} WIB</span>
                 </div>
-                <div class="d-flex justify-content-between py-1 mt-1"
-                     style="font-size:1rem;border-top:1px solid var(--tk-border);padding-top:.5rem;">
-                    <span class="fw-500">Total</span>
-                    <span class="fw-600" style="color:var(--tk-primary-dark);">
-                        Rp {{ number_format($booking->total_price, 0, ',', '.') }}
-                    </span>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;">
+                    <span style="font-weight:600;color:#1a1a2e;">Total</span>
+                    <span style="font-weight:700;color:#1e2d6b;">Rp {{ number_format($order['total'], 0, ',', '.') }}</span>
                 </div>
             </div>
 
-            <a href="{{ route('siswa.pemesanan') }}" class="tk-btn-primary d-flex justify-content-center">
-                <i class="bi bi-calendar-check me-2"></i> Lihat Pemesanan Saya
+            <a href="{{ route('siswa.pemesanan') }}"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:8px;background:#1e2d6b;color:#fff;font-size:14px;font-weight:500;text-decoration:none;">
+                <i class="bi bi-calendar-check"></i> Lihat Pemesanan Saya
             </a>
-            <a href="{{ route('home') }}" class="tk-link d-block mt-3" style="font-size:.875rem;">
+            <a href="{{ route('home') }}"
+               style="display:block;margin-top:14px;font-size:13px;color:#1e2d6b;text-decoration:none;font-weight:500;">
                 Kembali ke beranda
             </a>
         </div>
+
     </div>
 </div>
+
 @endsection

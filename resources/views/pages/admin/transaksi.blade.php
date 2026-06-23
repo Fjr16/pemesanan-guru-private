@@ -181,7 +181,7 @@
         </table>
     </div>
 
-    @if($bookings->hasPages())
+    @if(isset($bookings) && $bookings->hasPages())
         <div style="padding:14px 16px;border-top:1px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:12px;color:#8890a8;">
                 Menampilkan {{ $bookings->firstItem() }}–{{ $bookings->lastItem() }} dari {{ $bookings->total() }} transaksi
