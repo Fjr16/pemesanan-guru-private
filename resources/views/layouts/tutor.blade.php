@@ -229,21 +229,27 @@
         </div>
 
         <div class="tk-nav-section">Menu</div>
-        <a href="{{ route('tutor.dashboard') }}" class="tk-nav-link {{ request()->routeIs('tutor.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a>
-        <a href="{{ route('tutor.pemesanan') }}" class="tk-nav-link {{ request()->routeIs('tutor.pemesanan*') ? 'active' : '' }}">
-            <i class="bi bi-inbox"></i> Pesanan Masuk
-            @if(($pendingCount ?? 0) > 0)
-                <span class="tk-nav-badge">{{ $pendingCount }}</span>
-            @endif
-        </a>
-        <a href="{{ route('tutor.jadwal') }}" class="tk-nav-link {{ request()->routeIs('tutor.jadwal') ? 'active' : '' }}">
-            <i class="bi bi-calendar3"></i> Jadwal Saya
-        </a>
-        <a href="#" class="tk-nav-link {{ request()->routeIs('tutor.profil') ? 'active' : '' }}">
-            <i class="bi bi-person"></i> Profil
-        </a>
+        @if(Auth::user()->tutor && Auth::user()->tutor->status !== 'active')
+            <a href="{{ route('tutor.pending') }}" class="tk-nav-link {{ request()->routeIs('tutor.pending') ? 'active' : '' }}">
+                <i class="bi bi-hourglass-split"></i> Status Pendaftaran
+            </a>
+        @else
+            <a href="{{ route('tutor.dashboard') }}" class="tk-nav-link {{ request()->routeIs('tutor.dashboard') ? 'active' : '' }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="{{ route('tutor.pemesanan') }}" class="tk-nav-link {{ request()->routeIs('tutor.pemesanan*') ? 'active' : '' }}">
+                <i class="bi bi-inbox"></i> Pesanan Masuk
+                @if(($pendingCount ?? 0) > 0)
+                    <span class="tk-nav-badge">{{ $pendingCount }}</span>
+                @endif
+            </a>
+            <a href="{{ route('tutor.jadwal') }}" class="tk-nav-link {{ request()->routeIs('tutor.jadwal') ? 'active' : '' }}">
+                <i class="bi bi-calendar3"></i> Jadwal Saya
+            </a>
+            <a href="#" class="tk-nav-link {{ request()->routeIs('tutor.profil') ? 'active' : '' }}">
+                <i class="bi bi-person"></i> Profil
+            </a>
+        @endif
 
         <div class="tk-sidebar-footer">
             <form method="POST" action="{{ route('logout') }}">

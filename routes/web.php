@@ -57,17 +57,23 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
 =============================================================== */
 Route::middleware(['auth', 'role:tutor'])->prefix('tutor-panel')->name('tutor.')->group(function () {
 
-    Route::get('/dashboard', [App\Http\Controllers\Tutor\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/status', [App\Http\Controllers\Tutor\StatusController::class, 'pending'])->name('pending');
 
-    Route::get('/jadwal',         [App\Http\Controllers\Tutor\JadwalController::class, 'index'])->name('jadwal');
-    Route::post('/jadwal',        [App\Http\Controllers\Tutor\JadwalController::class, 'store'])->name('jadwal.store');
-    Route::delete('/jadwal/{id}', [App\Http\Controllers\Tutor\JadwalController::class, 'destroy'])->name('jadwal.destroy');
+    Route::middleware('tutor.status')->group(function () {
 
-    Route::get('/pemesanan',                     [App\Http\Controllers\Tutor\PemesananController::class, 'index'])->name('pemesanan');
-    Route::get('/pemesanan/{order}',             [App\Http\Controllers\Tutor\PemesananController::class, 'show'])->name('pemesanan.show');
-    Route::post('/pemesanan/{order}/terima',     [App\Http\Controllers\Tutor\PemesananController::class, 'terima'])->name('pemesanan.terima');
-    Route::post('/pemesanan/{order}/tolak',      [App\Http\Controllers\Tutor\PemesananController::class, 'tolak'])->name('pemesanan.tolak');
-    Route::post('/pemesanan/{order}/selesai',    [App\Http\Controllers\Tutor\PemesananController::class, 'selesai'])->name('pemesanan.selesai');
+        Route::get('/dashboard', [App\Http\Controllers\Tutor\DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/jadwal',         [App\Http\Controllers\Tutor\JadwalController::class, 'index'])->name('jadwal');
+        Route::post('/jadwal',        [App\Http\Controllers\Tutor\JadwalController::class, 'store'])->name('jadwal.store');
+        Route::delete('/jadwal/{id}', [App\Http\Controllers\Tutor\JadwalController::class, 'destroy'])->name('jadwal.destroy');
+
+        Route::get('/pemesanan',                     [App\Http\Controllers\Tutor\PemesananController::class, 'index'])->name('pemesanan');
+        Route::get('/pemesanan/{order}',             [App\Http\Controllers\Tutor\PemesananController::class, 'show'])->name('pemesanan.show');
+        Route::post('/pemesanan/{order}/terima',     [App\Http\Controllers\Tutor\PemesananController::class, 'terima'])->name('pemesanan.terima');
+        Route::post('/pemesanan/{order}/tolak',      [App\Http\Controllers\Tutor\PemesananController::class, 'tolak'])->name('pemesanan.tolak');
+        Route::post('/pemesanan/{order}/selesai',    [App\Http\Controllers\Tutor\PemesananController::class, 'selesai'])->name('pemesanan.selesai');
+
+    });
 
 });
 

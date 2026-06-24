@@ -36,13 +36,12 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
-        // Tutor: cek apakah sudah diverifikasi admin
-        if ($user->role === 'tutor' && $user->tutor?->status === 'pending') {
-            Auth::logout();
-            return back()->with('warning', 'Akun tutor Anda masih menunggu verifikasi admin. Mohon tunggu konfirmasi via email.');
-        }
-
         $request->session()->regenerate();
+
+        if ($user->role === 'tutor' && $user->tutor && $user->tutor->status !== 'active') {
+            return redirect()->route('tutor.pending')
+                ->with('info', 'Akun Anda sedang dalam proses verifikasi.');
+        }
 
         return redirect()->intended($this->redirectTo($user->role))
             ->with('success', 'Selamat datang kembali, ' . $user->username . '!');
