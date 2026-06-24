@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -17,29 +18,23 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => ['required', 'email'],
+            'login'    => ['required', 'string'],
             'password' => ['required'],
-            'role'     => ['required', 'in:siswa,tutor,admin'],
         ]);
 
-        $credentials = $request->only('email', 'password');
-        $remember    = $request->boolean('remember');
+        $login = $request->input('login');
 
-        if (! Auth::attempt($credentials, $remember)) {
+        $user = User::where('email', $login)
+            ->orWhere('username', $login)
+            ->first();
+
+        if (! $user || ! Auth::attempt(['email' => $user->email, 'password' => $request->password], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'credentials' => 'Email atau password salah. Silakan coba lagi.',
+                'credentials' => 'Username/email atau password salah. Silakan coba lagi.',
             ]);
         }
 
         $user = Auth::user();
-
-        // Validasi role yang dipilih
-        if ($user->role !== $request->role) {
-            Auth::logout();
-            throw ValidationException::withMessages([
-                'credentials' => 'Akun Anda terdaftar sebagai ' . ucfirst($user->role) . ', bukan ' . ucfirst($request->role) . '.',
-            ]);
-        }
 
         // Tutor: cek apakah sudah diverifikasi admin
         if ($user->role === 'tutor' && $user->tutor?->status === 'pending') {

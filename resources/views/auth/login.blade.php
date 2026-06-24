@@ -6,44 +6,30 @@
 
 <div class="mb-4">
     <h3 class="fw-600 mb-1" style="font-size:1.375rem;color:#0f172a;">Masuk ke akun</h3>
-    <p class="text-muted" style="font-size:.9rem;">Pilih peran dan masukkan kredensial Anda.</p>
-</div>
-
-{{-- ROLE TABS --}}
-<div class="tk-role-tabs mb-4" role="tablist">
-    <button class="tk-role-tab active" data-role="siswa" type="button">
-        <i class="bi bi-person-fill me-1"></i> Siswa
-    </button>
-    <button class="tk-role-tab" data-role="tutor" type="button">
-        <i class="bi bi-mortarboard-fill me-1"></i> Tutor
-    </button>
-    <button class="tk-role-tab" data-role="admin" type="button">
-        <i class="bi bi-shield-fill me-1"></i> Admin
-    </button>
+    <p class="text-muted" style="font-size:.9rem;">Masukkan username atau email beserta password Anda.</p>
 </div>
 
 {{-- FORM --}}
 <form method="POST" action="{{ route('login') }}" data-loading id="loginForm">
     @csrf
-    <input type="hidden" name="role" id="roleInput" value="siswa">
 
-    {{-- Email --}}
+    {{-- Email / Username --}}
     <div class="mb-3">
-        <label class="tk-form-label" for="email">Alamat Email</label>
+        <label class="tk-form-label" for="login">Username atau Email</label>
         <div class="tk-input-group">
-            <i class="bi bi-envelope tk-input-icon"></i>
+            <i class="bi bi-person tk-input-icon"></i>
             <input
-                type="email"
-                id="email"
-                name="email"
-                class="tk-form-control @error('email') is-invalid @enderror"
-                placeholder="nama@email.com"
-                value="{{ old('email') }}"
-                autocomplete="email"
+                type="text"
+                id="login"
+                name="login"
+                class="tk-form-control @error('login') is-invalid @enderror"
+                placeholder="username atau nama@email.com"
+                value="{{ old('login') }}"
+                autocomplete="username"
                 required
             >
         </div>
-        @error('email')
+        @error('login')
             <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">
                 <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
             </div>
@@ -129,25 +115,3 @@
 </div>
 
 @endsection
-
-@push('scripts')
-<script>
-$(document).ready(function () {
-
-    // Pre-select role dari URL param
-    const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get('role');
-    if (role) {
-        $('.tk-role-tab').removeClass('active');
-        $(`.tk-role-tab[data-role="${role}"]`).trigger('click').addClass('active');
-    }
-
-    // Set role dari old input (saat form error)
-    const oldRole = '{{ old("role", "siswa") }}';
-    if (oldRole) {
-        $(`.tk-role-tab[data-role="${oldRole}"]`).trigger('click');
-    }
-
-});
-</script>
-@endpush

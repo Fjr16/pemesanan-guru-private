@@ -18,10 +18,12 @@ Route::get('/tutor/{tutor}', [App\Http\Controllers\TutorController::class, 'show
 Route::middleware('guest')->group(function () {
 
     Route::get('/login',  [App\Http\Controllers\Auth\LoginController::class, 'showForm'])->name('login');
-    Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+    Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])
+        ->middleware('throttle:login');
 
     Route::get('/register',  [App\Http\Controllers\Auth\RegisterController::class, 'showForm'])->name('register');
-    Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register']);
+    Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])
+        ->middleware('throttle:register');
 
 });
 
@@ -106,7 +108,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 /* ================================================================
    API ROUTES (untuk AJAX internal)
 =============================================================== */
-Route::prefix('api')->name('api.')->group(function () {
+Route::middleware('throttle:api')->prefix('api')->name('api.')->group(function () {
 
     Route::get('/tutor/search',          [App\Http\Controllers\Api\TutorSearchController::class, 'search'])->name('tutor.search');
     Route::get('/tutor/{tutor}/jadwal',  [App\Http\Controllers\Api\TutorSearchController::class, 'jadwal'])->name('tutor.jadwal');

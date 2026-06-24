@@ -27,15 +27,6 @@ class CheckRole
             return $next($request);
         }
 
-        $user = Auth::user();
-        $roles = ['admin', 'siswa', 'tutor'];
-
-        // Izinkan jika salah satu role cocok
-        if (in_array($user->role, $roles, true)) {
-            return $next($request);
-        }
-
-        // Redirect ke dashboard yang sesuai
         return match($user->role) {
             'admin'  => redirect()->route('admin.dashboard')
                             ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
