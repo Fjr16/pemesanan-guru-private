@@ -221,7 +221,12 @@
         </a>
 
         <div class="tk-user-strip">
-            <div class="tk-user-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'T', 0, 2)) }}</div>
+            @if(Auth::user()->tutor && Auth::user()->tutor->foto)
+                <img src="{{ asset('storage/' . Auth::user()->tutor->foto) }}" alt=""
+                     style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+            @else
+                <div class="tk-user-avatar">{{ strtoupper(substr(Auth::user()->name ?? 'T', 0, 2)) }}</div>
+            @endif
             <div>
                 <div class="tk-user-name">{{ Auth::user()->name ?? 'Tutor' }}</div>
                 <div class="tk-user-role">Tutor</div>
@@ -246,7 +251,7 @@
             <a href="{{ route('tutor.jadwal') }}" class="tk-nav-link {{ request()->routeIs('tutor.jadwal') ? 'active' : '' }}">
                 <i class="bi bi-calendar3"></i> Jadwal Saya
             </a>
-            <a href="#" class="tk-nav-link {{ request()->routeIs('tutor.profil') ? 'active' : '' }}">
+            <a href="{{ route('tutor.profil') }}" class="tk-nav-link {{ request()->routeIs('tutor.profil*') ? 'active' : '' }}">
                 <i class="bi bi-person"></i> Profil
             </a>
         @endif

@@ -49,6 +49,10 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
 
     Route::post('/ulasan/{order}', [App\Http\Controllers\Siswa\UlasanController::class, 'store'])->name('ulasan.store');
 
+    Route::get('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'index'])->name('profil');
+    Route::put('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'update'])->name('profil.update');
+    Route::put('/profil/password',   [App\Http\Controllers\Siswa\ProfileController::class, 'updatePassword'])->name('profil.password');
+
 });
 
 
@@ -72,6 +76,23 @@ Route::middleware(['auth', 'role:tutor'])->prefix('tutor-panel')->name('tutor.')
         Route::post('/pemesanan/{order}/terima',     [App\Http\Controllers\Tutor\PemesananController::class, 'terima'])->name('pemesanan.terima');
         Route::post('/pemesanan/{order}/tolak',      [App\Http\Controllers\Tutor\PemesananController::class, 'tolak'])->name('pemesanan.tolak');
         Route::post('/pemesanan/{order}/selesai',    [App\Http\Controllers\Tutor\PemesananController::class, 'selesai'])->name('pemesanan.selesai');
+
+        Route::get('/profil',            [App\Http\Controllers\Tutor\ProfileController::class, 'index'])->name('profil');
+        Route::put('/profil',            [App\Http\Controllers\Tutor\ProfileController::class, 'update'])->name('profil.update');
+        Route::put('/profil/password',   [App\Http\Controllers\Tutor\ProfileController::class, 'updatePassword'])->name('profil.password');
+        Route::put('/profil/photo',      [App\Http\Controllers\Tutor\ProfileController::class, 'updatePhoto'])->name('profil.photo');
+
+        Route::post('/profil/subject',                    [App\Http\Controllers\Tutor\ProfileController::class, 'storeSubject'])->name('profil.subject.store');
+        Route::put('/profil/subject/{subject}',           [App\Http\Controllers\Tutor\ProfileController::class, 'updateSubject'])->name('profil.subject.update');
+        Route::delete('/profil/subject/{subject}',        [App\Http\Controllers\Tutor\ProfileController::class, 'destroySubject'])->name('profil.subject.destroy');
+
+        Route::post('/profil/experience',                 [App\Http\Controllers\Tutor\ProfileController::class, 'storeExperience'])->name('profil.experience.store');
+        Route::put('/profil/experience/{experience}',     [App\Http\Controllers\Tutor\ProfileController::class, 'updateExperience'])->name('profil.experience.update');
+        Route::delete('/profil/experience/{experience}',  [App\Http\Controllers\Tutor\ProfileController::class, 'destroyExperience'])->name('profil.experience.destroy');
+
+        Route::post('/profil/education',                  [App\Http\Controllers\Tutor\ProfileController::class, 'storeEducation'])->name('profil.education.store');
+        Route::put('/profil/education/{education}',       [App\Http\Controllers\Tutor\ProfileController::class, 'updateEducation'])->name('profil.education.update');
+        Route::delete('/profil/education/{education}',    [App\Http\Controllers\Tutor\ProfileController::class, 'destroyEducation'])->name('profil.education.destroy');
 
     });
 

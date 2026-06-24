@@ -101,6 +101,9 @@
                                     <li><a class="dropdown-item" href="{{ route('siswa.pemesanan') }}">
                                         <i class="bi bi-calendar-check me-2"></i>Pemesanan Saya
                                     </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('siswa.profil') }}">
+                                        <i class="bi bi-person me-2"></i>Profil
+                                    </a></li>
                                 @elseif(Auth::user()->role === 'tutor')
                                     <li><a class="dropdown-item" href="{{ route('tutor.dashboard') }}">
                                         <i class="bi bi-grid me-2"></i>Dashboard
@@ -108,15 +111,15 @@
                                     <li><a class="dropdown-item" href="{{ route('tutor.jadwal') }}">
                                         <i class="bi bi-calendar3 me-2"></i>Jadwal Saya
                                     </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('tutor.profil') }}">
+                                        <i class="bi bi-person me-2"></i>Profil
+                                    </a></li>
                                 @elseif(Auth::user()->role === 'admin')
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">
                                         <i class="bi bi-speedometer2 me-2"></i>Admin Panel
                                     </a></li>
                                 @endif
 
-                                <li><a class="dropdown-item" href="#">
-                                    <i class="bi bi-person me-2"></i>Profil
-                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">

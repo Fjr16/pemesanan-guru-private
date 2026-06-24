@@ -147,6 +147,7 @@ class RegisterController extends Controller
                     if (!empty($row['sekolah'])) {
                         StudiedHistory::create([
                             'tutor_id' => $tutor->id,
+                            'jenjang'  => $row['jenjang'] ?? null,
                             'sekolah'  => $row['sekolah'],
                             'jurusan'  => $row['jurusan'],
                             'periode'  => $row['periode'],

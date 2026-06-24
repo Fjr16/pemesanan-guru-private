@@ -508,15 +508,23 @@
                             <button type="button" class="btn-remove-row" style="background:none;border:none;color:#991b1b;cursor:pointer;font-size:12px;"><i class="bi bi-x-lg"></i></button>
                         </div>
                         <div class="row g-2">
-                            <div class="col-5">
+                            <div class="col-3">
+                                <select name="riwayat_pendidikan[{{ $idx }}][jenjang]" class="tk-form-control" style="font-size:.8rem;height:32px;">
+                                    <option value="">Jenjang</option>
+                                    @foreach(['SD','SMP','SMA','D3','S1','S2','S3'] as $j)
+                                        <option value="{{ $j }}" {{ ($pd['jenjang'] ?? '') === $j ? 'selected' : '' }}>{{ $j }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-4">
                                 <input type="text" name="riwayat_pendidikan[{{ $idx }}][sekolah]" value="{{ $pd['sekolah'] ?? '' }}"
                                        class="tk-form-control" placeholder="Nama sekolah/kampus" style="font-size:.8rem;height:32px;">
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <input type="text" name="riwayat_pendidikan[{{ $idx }}][jurusan]" value="{{ $pd['jurusan'] ?? '' }}"
                                        class="tk-form-control" placeholder="Jurusan" style="font-size:.8rem;height:32px;">
                             </div>
-                            <div class="col-3">
+                            <div class="col-2">
                                 <input type="text" name="riwayat_pendidikan[{{ $idx }}][periode]" value="{{ $pd['periode'] ?? '' }}"
                                        class="tk-form-control" placeholder="2018-2022" style="font-size:.8rem;height:32px;">
                             </div>
@@ -849,9 +857,10 @@ $(document).ready(function () {
         html += `<span style="font-size:11px;font-weight:600;color:#4b5574;">Pendidikan #${i + 1}</span>`;
         html += `<button type="button" class="btn-remove-row" style="background:none;border:none;color:#991b1b;cursor:pointer;font-size:12px;"><i class="bi bi-x-lg"></i></button>`;
         html += `</div><div class="row g-2">`;
-        html += `<div class="col-5"><input type="text" name="riwayat_pendidikan[${i}][sekolah]" class="tk-form-control" placeholder="Nama sekolah/kampus" style="font-size:.8rem;height:32px;"></div>`;
-        html += `<div class="col-4"><input type="text" name="riwayat_pendidikan[${i}][jurusan]" class="tk-form-control" placeholder="Jurusan" style="font-size:.8rem;height:32px;"></div>`;
-        html += `<div class="col-3"><input type="text" name="riwayat_pendidikan[${i}][periode]" class="tk-form-control" placeholder="2018-2022" style="font-size:.8rem;height:32px;"></div>`;
+        html += `<div class="col-3"><select name="riwayat_pendidikan[${i}][jenjang]" class="tk-form-control" style="font-size:.8rem;height:32px;"><option value="">Jenjang</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option><option value="D3">D3</option><option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option></select></div>`;
+        html += `<div class="col-4"><input type="text" name="riwayat_pendidikan[${i}][sekolah]" class="tk-form-control" placeholder="Nama sekolah/kampus" style="font-size:.8rem;height:32px;"></div>`;
+        html += `<div class="col-3"><input type="text" name="riwayat_pendidikan[${i}][jurusan]" class="tk-form-control" placeholder="Jurusan" style="font-size:.8rem;height:32px;"></div>`;
+        html += `<div class="col-2"><input type="text" name="riwayat_pendidikan[${i}][periode]" class="tk-form-control" placeholder="2018-2022" style="font-size:.8rem;height:32px;"></div>`;
         html += `</div></div>`;
         $('#pendidikanRows').append(html);
     });

@@ -110,22 +110,15 @@
                 {{-- Jam mulai --}}
                 <div style="margin-bottom:14px;">
                     <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="jamMulai">Jam Mulai</label>
-                    <select id="jamMulai" style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
-                        <option value="">Pilih jam mulai...</option>
-                        @foreach(['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'] as $jam)
-                            <option value="{{ $jam }}">{{ $jam }} WIB</option>
-                        @endforeach
-                    </select>
+                    <input type="time" id="jamMulai" step="900"
+                           style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
                 </div>
 
-                {{-- Durasi --}}
+                {{-- Jam selesai --}}
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="durasiSlot">Durasi Slot</label>
-                    <select id="durasiSlot" style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
-                        <option value="1">1 jam</option>
-                        <option value="1.5">1.5 jam</option>
-                        <option value="2">2 jam</option>
-                    </select>
+                    <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="jamSelesai">Jam Selesai</label>
+                    <input type="time" id="jamSelesai" step="900"
+                           style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
                 </div>
 
                 {{-- Preview --}}
@@ -208,18 +201,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('jamMulai').addEventListener('change', updatePreview);
-    document.getElementById('durasiSlot').addEventListener('change', updatePreview);
+    document.getElementById('jamSelesai').addEventListener('change', updatePreview);
 
     function updatePreview() {
         const day = document.getElementById('selectedDay').value;
-        const jam = document.getElementById('jamMulai').value;
-        const durasi = parseFloat(document.getElementById('durasiSlot').value) || 1;
-        const isReady = day && jam;
+        const jamMulai = document.getElementById('jamMulai').value;
+        const jamSelesai = document.getElementById('jamSelesai').value;
+        const isReady = day && jamMulai && jamSelesai;
         document.getElementById('btnTambahSlot').disabled = !isReady;
         if (isReady) {
-            const [h, m] = jam.split(':').map(Number);
-            const totalMin = h * 60 + m + durasi * 60;
-            document.getElementById('previewText').textContent = day + ', ' + jam + ' – ' + String(Math.floor(totalMin/60)).padStart(2,'0') + ':' + String(totalMin%60).padStart(2,'0') + ' WIB';
+            document.getElementById('previewText').textContent = day + ', ' + jamMulai + ' – ' + jamSelesai + ' WIB';
             document.getElementById('slotPreview').style.display = 'block';
         } else {
             document.getElementById('slotPreview').style.display = 'none';
@@ -228,15 +219,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('btnTambahSlot').addEventListener('click', function () {
         const day = document.getElementById('selectedDay').value;
-        const jam = document.getElementById('jamMulai').value;
-        if (!day || !jam) { showToast('Pilih hari dan jam terlebih dahulu.', 'error'); return; }
+        const jamMulai = document.getElementById('jamMulai').value;
+        const jamSelesai = document.getElementById('jamSelesai').value;
+        if (!day || !jamMulai || !jamSelesai) { showToast('Pilih hari, jam mulai, dan jam selesai.', 'error'); return; }
         const btn = this;
         btn.disabled = true;
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menyimpan...';
         fetch('{{ route("tutor.jadwal.store") }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ hari: day, jam_mulai: jam, jam_selesai: document.getElementById('previewText').textContent.split('–')[1]?.trim().replace(' WIB','') || '' })
+            body: JSON.stringify({ hari: day, jam_mulai: jamMulai, jam_selesai: jamSelesai })
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { tambahModal.hide(); showToast('Slot jadwal berhasil ditambahkan!'); setTimeout(() => location.reload(), 800); })
@@ -271,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tambahJadwalModal').addEventListener('hidden.bs.modal', function () {
         document.getElementById('selectedDay').value = '';
         document.getElementById('jamMulai').value = '';
-        document.getElementById('durasiSlot').value = '1';
+        document.getElementById('jamSelesai').value = '';
         document.getElementById('slotPreview').style.display = 'none';
         document.getElementById('btnTambahSlot').disabled = true;
         document.querySelectorAll('.day-pick-btn').forEach(b => { b.style.background = '#fff'; b.style.color = '#4b5574'; b.style.borderColor = '#e8eaf0'; });
