@@ -47,8 +47,6 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::post('/pemesanan/{order}/bayar',  [App\Http\Controllers\Siswa\PembayaranController::class, 'process'])->name('pembayaran.process');
     Route::get('/pemesanan/{order}/sukses',  [App\Http\Controllers\Siswa\PembayaranController::class, 'success'])->name('pembayaran.sukses');
 
-    Route::post('/ulasan/{order}', [App\Http\Controllers\Siswa\UlasanController::class, 'store'])->name('ulasan.store');
-
     Route::get('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'index'])->name('profil');
     Route::put('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/password',   [App\Http\Controllers\Siswa\ProfileController::class, 'updatePassword'])->name('profil.password');
@@ -139,6 +137,9 @@ Route::middleware('throttle:api')->prefix('api')->name('api.')->group(function (
 
     Route::get('/tutor/search',          [App\Http\Controllers\Api\TutorSearchController::class, 'search'])->name('tutor.search');
     Route::get('/tutor/{tutor}/jadwal',  [App\Http\Controllers\Api\TutorSearchController::class, 'jadwal'])->name('tutor.jadwal');
+    Route::get('/tutor/{tutor}/available-days', [App\Http\Controllers\Api\TutorSearchController::class, 'availableDays'])->name('tutor.available-days');
     Route::get('/mata-pelajaran',        [App\Http\Controllers\Api\MataPelajaranController::class, 'index'])->name('mapel.index');
+
+    Route::middleware('auth')->post('/booking', [App\Http\Controllers\Api\BookingController::class, 'store'])->name('booking.store');
 
 });

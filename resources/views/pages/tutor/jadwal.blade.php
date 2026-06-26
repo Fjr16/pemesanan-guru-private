@@ -11,21 +11,20 @@
 
 @section('content')
 
-{{-- ── Info ──────────────────────────────────────────────────── --}}
-<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
-    <i class="bi bi-info-circle" style="color:#3730a3;font-size:14px;"></i>
-    <span style="font-size:13px;color:#3730a3;">
-        Slot berwarna <strong>merah</strong> sudah di-booking siswa dan tidak dapat dihapus.
-        Slot <strong>hijau</strong> masih kosong dan bisa dihapus.
+<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:8px;">
+    <i class="bi bi-info-circle" style="color:#3730a3;font-size:14px;margin-top:1px;"></i>
+    <span style="font-size:12px;color:#3730a3;line-height:1.5;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#dcfce7;border:1px solid #86efac;margin-right:2px;"></span> Kosong — bisa dihapus &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#fef9c3;border:1px solid #fde047;margin-right:2px;"></span> Menunggu bayar — tidak bisa dihapus &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;margin-right:2px;"></span> Dikonfirmasi — tidak bisa dihapus
     </span>
 </div>
 
-{{-- ── Jadwal grid per hari ──────────────────────────────────── --}}
 @php $days = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu']; @endphp
 
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
     @foreach($days as $day)
-        @php $daySchedules = ($schedules ?? collect())->where('hari', $day)->sortBy('jam_mulai'); @endphp
+        @php $daySchedules = ($schedules ?? collect())->where('day', $day)->sortBy('jam_start'); @endphp
         <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;display:flex;flex-direction:column;">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f0f2f8;">
                 <span style="font-size:13px;font-weight:600;color:#1a1a2e;">{{ $day }}</span>
@@ -33,30 +32,53 @@
             </div>
             <div style="padding:12px 16px;flex:1;">
                 @if($daySchedules->isEmpty())
-                    <p style="text-align:center;color:#8890a8;font-size:12px;padding:16px 0;margin:0;">Belum ada jadwal</p>
+                    <p style="text-align:center;color:#8890a8;font-size:12px;padding:12px 0;margin:0 0 8px;">Belum ada jadwal</p>
+                    <button type="button" class="btn-tambah-dari-hari" data-day="{{ $day }}"
+                            style="width:100%;padding:6px;border:1px dashed #d0d5e8;border-radius:8px;background:#fafbff;font-size:12px;color:#4b5574;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .15s;"
+                            onmouseover="this.style.borderColor='#7f9cf5';this.style.color='#1e2d6b'"
+                            onmouseout="this.style.borderColor='#d0d5e8';this.style.color='#4b5574'">
+                        <i class="bi bi-plus" style="font-size:14px;"></i> Tambah
+                    </button>
                 @else
                     <div style="display:flex;flex-direction:column;gap:6px;">
                         @foreach($daySchedules as $slot)
                             @php
-                                $isBooked = ($slot->bookings_count ?? 0) > 0;
+                                $hasActive = $slot->has_active_locks;
+                                $hasConfirmed = collect($slot->locked_dates)->contains('status', 'confirmed');
+                                $hasLocked = collect($slot->locked_dates)->contains('status', 'locked');
+
+                                if ($hasConfirmed) {
+                                    $bgColor = '#fef2f2'; $borderColor = '#fca5a5'; $textColor = '#991b1b'; $statusLabel = 'Dikonfirmasi';
+                                } elseif ($hasLocked) {
+                                    $bgColor = '#fef9c3'; $borderColor = '#fde047'; $textColor = '#854d0e'; $statusLabel = 'Menunggu bayar';
+                                } else {
+                                    $bgColor = '#f0fdf4'; $borderColor = '#a7f3d0'; $textColor = '#15803d'; $statusLabel = 'Kosong';
+                                }
                             @endphp
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;{{ $isBooked ? 'background:#fef2f2;border:1px solid #fecaca;' : 'background:#f0fdf4;border:1px solid #a7f3d0;' }}">
-                                <div>
-                                    <div style="font-size:12px;font-weight:500;color:{{ $isBooked ? '#991b1b' : '#15803d' }};">
-                                        {{ $slot->jam_mulai ?? '09:00' }} — {{ $slot->jam_selesai ?? '11:00' }}
+                            <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:8px 10px;border-radius:8px;background:{{ $bgColor }};border:1px solid {{ $borderColor }};">
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:12px;font-weight:500;color:{{ $textColor }};">
+                                        {{ $slot->jam_start }} — {{ $slot->jam_end }}
                                     </div>
-                                    @if($isBooked)
-                                        <div style="font-size:10px;color:#991b1b;opacity:.7;">
-                                            <i class="bi bi-lock-fill" style="margin-right:2px;"></i>Di-booking
+                                    @if($hasActive)
+                                        <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">
+                                            @foreach($slot->locked_dates as $lock)
+                                                <span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:{{ $lock['status'] === 'confirmed' ? '#fee2e2' : '#fef9c3' }};color:{{ $lock['status'] === 'confirmed' ? '#991b1b' : '#854d0e' }};">
+                                                    {{ $lock['tanggal'] }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                        <div style="font-size:10px;color:{{ $textColor }};opacity:.7;margin-top:3px;">
+                                            <i class="bi bi-lock-fill" style="margin-right:2px;"></i>{{ $slot->active_lock_count }} booking mendatang
                                         </div>
                                     @endif
                                 </div>
-                                @if(!$isBooked)
+                                @if(!$hasActive)
                                     <button type="button"
                                             class="btn-hapus-slot"
                                             data-slot-id="{{ $slot->id }}"
-                                            data-hari="{{ $slot->hari }}"
-                                            data-jam="{{ $slot->jam_mulai }}"
+                                            data-day="{{ $slot->day }}"
+                                            data-jam="{{ $slot->jam_start }} — {{ $slot->jam_end }}"
                                             style="background:none;border:none;color:#991b1b;cursor:pointer;padding:2px 4px;opacity:.6;transition:opacity .15s;"
                                             title="Hapus slot"
                                             onmouseover="this.style.opacity='1'"
@@ -64,7 +86,7 @@
                                         <i class="bi bi-x-lg" style="font-size:11px;"></i>
                                     </button>
                                 @else
-                                    <i class="bi bi-lock-fill" style="color:#991b1b;opacity:.4;font-size:11px;"></i>
+                                    <i class="bi bi-lock-fill" style="color:{{ $textColor }};opacity:.4;font-size:11px;margin-top:2px;"></i>
                                 @endif
                             </div>
                         @endforeach
@@ -75,12 +97,9 @@
     @endforeach
 </div>
 
-{{-- Toast container --}}
 <div id="toastContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px"></div>
 
-{{-- ================================================================
-     MODAL TAMBAH JADWAL
-=============================================================== --}}
+{{-- MODAL TAMBAH --}}
 <div class="modal fade" id="tambahJadwalModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
         <div class="modal-content" style="border:none;border-radius:14px;box-shadow:0 8px 32px rgba(30,45,107,.12)">
@@ -91,9 +110,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size:13px"></button>
             </div>
             <div class="modal-body" style="padding:20px 24px">
-                <p style="font-size:12px;color:#8890a8;margin:0 0 16px;">Pilih hari dan jam ketersediaan mengajar.</p>
+                <p style="font-size:12px;color:#8890a8;margin:0 0 16px;">Pilih hari dan jam ketersediaan. Setiap slot berdurasi <strong>1 jam</strong>.</p>
 
-                {{-- Pilih hari --}}
                 <div style="margin-bottom:14px;">
                     <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;">Hari</label>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;" id="dayPicker">
@@ -107,21 +125,15 @@
                     <input type="hidden" id="selectedDay">
                 </div>
 
-                {{-- Jam mulai --}}
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="jamMulai">Jam Mulai</label>
-                    <input type="time" id="jamMulai" step="900"
+                    <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="jamMulai">Jam</label>
+                    <input type="time" id="jamMulai" step="3600"
                            style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
+                    <div style="font-size:11px;color:#8890a8;margin-top:4px;">
+                        Slot otomatis 1 jam. <span id="jamEndPreview" style="font-weight:500;color:#4b5574;"></span>
+                    </div>
                 </div>
 
-                {{-- Jam selesai --}}
-                <div style="margin-bottom:14px;">
-                    <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:6px;display:block;" for="jamSelesai">Jam Selesai</label>
-                    <input type="time" id="jamSelesai" step="900"
-                           style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
-                </div>
-
-                {{-- Preview --}}
                 <div id="slotPreview" style="display:none;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:10px 14px;margin-bottom:14px;">
                     <span style="font-size:13px;color:#15803d;">
                         <i class="bi bi-calendar-check" style="margin-right:4px;"></i>
@@ -129,10 +141,11 @@
                     </span>
                 </div>
 
-                {{-- Repeat --}}
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <input class="form-check-input" type="checkbox" id="isRepeat" style="width:16px;height:16px;cursor:pointer;">
-                    <label style="font-size:12px;color:#8890a8;cursor:pointer;margin:0;" for="isRepeat">Ulangi setiap minggu (jadwal rutin)</label>
+                <div id="overlapWarning" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+                    <span style="font-size:12px;color:#991b1b;">
+                        <i class="bi bi-exclamation-triangle-fill" style="margin-right:4px;"></i>
+                        <span id="overlapText"></span>
+                    </span>
                 </div>
             </div>
             <div class="modal-footer" style="padding:0 24px 20px;border:none;gap:8px">
@@ -161,7 +174,7 @@
                 <div style="display:flex;gap:8px">
                     <button type="button" class="tk-topbar-btn" style="flex:1;justify-content:center;color:#4b5574" data-bs-dismiss="modal">Batal</button>
                     <button type="button" id="confirmHapusSlot"
-                            style="flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;background:#991b1b;color:#fff;transition:background .15s">
+                            style="flex:1;justify-content:center;display:inline-flex;align-items:center;gap:6px;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;background:#991b1b;color:#fff;transition:background .15s;">
                         Hapus
                     </button>
                 </div>
@@ -179,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const tambahModal = new bootstrap.Modal(document.getElementById('tambahJadwalModal'));
     const hapusModal  = new bootstrap.Modal(document.getElementById('hapusSlotModal'));
+    const existingSlots = @json($schedules->map(fn($s) => ['day' => $s->day, 'jam_start' => $s->jam_start]));
 
     function showToast(msg, type = 'success') {
         const colors = type === 'success' ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0' : 'background:#fef2f2;color:#991b1b;border:1px solid #fecaca';
@@ -188,6 +202,17 @@ document.addEventListener('DOMContentLoaded', function () {
         t.innerHTML = icon + ' ' + msg;
         document.getElementById('toastContainer').appendChild(t);
         setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function addOneHour(timeStr) {
+        const [h, m] = timeStr.split(':').map(Number);
+        return String((h + 1) % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+
+    function checkOverlap(day, jamMulai) {
+        if (!day || !jamMulai) return [];
+        const jamSelesai = addOneHour(jamMulai);
+        return existingSlots.filter(s => s.day === day && s.jam_start === jamMulai);
     }
 
     // Day picker
@@ -201,38 +226,78 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('jamMulai').addEventListener('change', updatePreview);
-    document.getElementById('jamSelesai').addEventListener('change', updatePreview);
 
     function updatePreview() {
         const day = document.getElementById('selectedDay').value;
         const jamMulai = document.getElementById('jamMulai').value;
-        const jamSelesai = document.getElementById('jamSelesai').value;
-        const isReady = day && jamMulai && jamSelesai;
+        const isReady = day && jamMulai;
         document.getElementById('btnTambahSlot').disabled = !isReady;
+
+        const preview = document.getElementById('slotPreview');
+        const overlapWarning = document.getElementById('overlapWarning');
+        const jamEndPreview = document.getElementById('jamEndPreview');
+
         if (isReady) {
+            const jamSelesai = addOneHour(jamMulai);
+            jamEndPreview.textContent = 'Selesai: ' + jamSelesai;
             document.getElementById('previewText').textContent = day + ', ' + jamMulai + ' – ' + jamSelesai + ' WIB';
-            document.getElementById('slotPreview').style.display = 'block';
+            preview.style.display = 'block';
+
+            const duplicates = checkOverlap(day, jamMulai);
+            if (duplicates.length > 0) {
+                document.getElementById('overlapText').textContent = 'Slot jam ' + jamMulai + ' sudah ada di hari ' + day + '.';
+                overlapWarning.style.display = 'block';
+                document.getElementById('btnTambahSlot').disabled = true;
+            } else {
+                overlapWarning.style.display = 'none';
+            }
         } else {
-            document.getElementById('slotPreview').style.display = 'none';
+            preview.style.display = 'none';
+            overlapWarning.style.display = 'none';
+            jamEndPreview.textContent = '';
         }
     }
+
+    // Quick add from day card
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-tambah-dari-hari');
+        if (!btn) return;
+        const day = btn.dataset.day;
+        document.querySelectorAll('.day-pick-btn').forEach(b => {
+            if (b.dataset.day === day) {
+                b.style.background = '#eef2ff'; b.style.color = '#3730a3'; b.style.borderColor = '#3730a3';
+            } else {
+                b.style.background = '#fff'; b.style.color = '#4b5574'; b.style.borderColor = '#e8eaf0';
+            }
+        });
+        document.getElementById('selectedDay').value = day;
+        tambahModal.show();
+    });
 
     document.getElementById('btnTambahSlot').addEventListener('click', function () {
         const day = document.getElementById('selectedDay').value;
         const jamMulai = document.getElementById('jamMulai').value;
-        const jamSelesai = document.getElementById('jamSelesai').value;
-        if (!day || !jamMulai || !jamSelesai) { showToast('Pilih hari, jam mulai, dan jam selesai.', 'error'); return; }
+        if (!day || !jamMulai) { showToast('Pilih hari dan jam.', 'error'); return; }
+
+        const duplicates = checkOverlap(day, jamMulai);
+        if (duplicates.length > 0) { showToast('Slot jam ' + jamMulai + ' sudah ada.', 'error'); return; }
+
         const btn = this;
         btn.disabled = true;
         btn.innerHTML = '<span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle"></span> Menyimpan...';
+
         fetch('{{ route("tutor.jadwal.store") }}', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: JSON.stringify({ hari: day, jam_mulai: jamMulai, jam_selesai: jamSelesai })
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+            body: JSON.stringify({ day: day, jam_start: jamMulai })
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { tambahModal.hide(); showToast('Slot jadwal berhasil ditambahkan!'); setTimeout(() => location.reload(), 800); })
-        .catch(() => showToast('Gagal menambah jadwal.', 'error'))
+        .catch(async (r) => {
+            let msg = 'Gagal menambah jadwal.';
+            try { const j = await r.json(); if (j.message) msg = j.message; } catch(e) {}
+            showToast(msg, 'error');
+        })
         .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-plus-lg"></i> Tambah Slot'; });
     });
 
@@ -241,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const btn = e.target.closest('.btn-hapus-slot');
         if (!btn) return;
         document.getElementById('hapusSlotId').value = btn.dataset.slotId;
-        document.getElementById('hapusSlotLabel').textContent = btn.dataset.hari + ', ' + btn.dataset.jam + ' WIB';
+        document.getElementById('hapusSlotLabel').textContent = btn.dataset.day + ', ' + btn.dataset.jam;
         hapusModal.show();
     });
 
@@ -251,11 +316,15 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true; btn.textContent = 'Menghapus...';
         fetch('/tutor-panel/jadwal/' + id, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { hapusModal.hide(); showToast('Slot jadwal berhasil dihapus.'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showToast('Gagal menghapus slot.', 'error'))
+        .catch(async (r) => {
+            let msg = 'Gagal menghapus slot.';
+            try { const j = await r.json(); if (j.message) msg = j.message; } catch(e) {}
+            showToast(msg, 'error');
+        })
         .finally(() => { btn.disabled = false; btn.textContent = 'Hapus'; });
     });
 
@@ -263,8 +332,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('tambahJadwalModal').addEventListener('hidden.bs.modal', function () {
         document.getElementById('selectedDay').value = '';
         document.getElementById('jamMulai').value = '';
-        document.getElementById('jamSelesai').value = '';
         document.getElementById('slotPreview').style.display = 'none';
+        document.getElementById('overlapWarning').style.display = 'none';
+        document.getElementById('jamEndPreview').textContent = '';
         document.getElementById('btnTambahSlot').disabled = true;
         document.querySelectorAll('.day-pick-btn').forEach(b => { b.style.background = '#fff'; b.style.color = '#4b5574'; b.style.borderColor = '#e8eaf0'; });
     });

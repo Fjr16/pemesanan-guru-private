@@ -65,11 +65,11 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div>
-                    <div style="font-size:18px;font-weight:600;color:#1a1a2e;">{{ $tutor->orders()->where('status','complete')->count() }}</div>
+                    <div style="font-size:18px;font-weight:600;color:#1a1a2e;">{{ $tutor?->orders()?->where('status','complete')->count() }}</div>
                     <div style="font-size:11px;color:#8890a8;">Sesi Selesai</div>
                 </div>
                 <div>
-                    <div style="font-size:18px;font-weight:600;color:#1a1a2e;">{{ $tutor->orders()->count() }}</div>
+                    <div style="font-size:18px;font-weight:600;color:#1a1a2e;">{{ $tutor?->orders()?->count() }}</div>
                     <div style="font-size:11px;color:#8890a8;">Total Order</div>
                 </div>
             </div>

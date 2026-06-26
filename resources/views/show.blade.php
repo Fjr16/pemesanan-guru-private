@@ -4,8 +4,6 @@
 
 @section('content')
 
-@php $rating = round($tutor->reviews_avg_rating ?? 0, 1); @endphp
-
 {{-- ================================================================
      PROFIL HEADER
 =============================================================== --}}
@@ -22,42 +20,27 @@
                 </a>
 
                 <div class="d-flex align-items-start gap-4">
-                    {{-- Avatar --}}
                     <div class="tk-tutor-avatar flex-shrink-0"
                          style="width:80px;height:80px;font-size:1.5rem;
                                 background:var(--tk-primary-light);color:#fff;">
-                        {{ strtoupper(substr($tutor->user->name ?? 'TK', 0, 2)) }}
+                        @if($tutor->foto)
+                            <img src="{{ asset('storage/' . $tutor->foto) }}" alt=""
+                                 style="width:80px;height:80px;border-radius:50%;object-fit:cover;">
+                        @else
+                            {{ strtoupper(substr($tutor->name ?? 'TK', 0, 2)) }}
+                        @endif
                     </div>
 
                     <div>
                         <h1 class="text-white mb-1" style="font-size:1.5rem;font-weight:600;">
-                            {{ $tutor->user->name }}
+                            {{ $tutor->name }}
                         </h1>
                         <p class="mb-2" style="color:rgba(255,255,255,.6);font-size:.9375rem;">
-                            Tutor Privat ·
-                            {{ $tutor->mataPelajaran->pluck('nama')->join(', ') }}
+                            {{ $tutor->job }} ·
+                            {{ $tutor->tutorSubjects->map(fn($ts) => $ts->subjectCategory->name ?? '-')->join(', ') }}
                         </p>
 
-                        {{-- Rating + stats --}}
                         <div class="d-flex align-items-center flex-wrap gap-3">
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="tk-stars">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        @if($i <= floor($rating))
-                                            <i class="bi bi-star-fill"></i>
-                                        @elseif($i - $rating < 1)
-                                            <i class="bi bi-star-half"></i>
-                                        @else
-                                            <i class="bi bi-star" style="color:rgba(255,255,255,.3);"></i>
-                                        @endif
-                                    @endfor
-                                </span>
-                                <span class="text-white fw-500">{{ $rating }}</span>
-                                <span style="color:rgba(255,255,255,.45);font-size:.8rem;">
-                                    ({{ $tutor->review_count ?? 0 }} ulasan)
-                                </span>
-                            </div>
-                            <span style="color:rgba(255,255,255,.3);">·</span>
                             <span style="color:rgba(255,255,255,.65);font-size:.875rem;">
                                 <i class="bi bi-person-check me-1"></i>
                                 {{ $tutor->session_count ?? 0 }} sesi selesai
@@ -65,7 +48,7 @@
                             <span style="color:rgba(255,255,255,.3);">·</span>
                             <span style="color:rgba(255,255,255,.65);font-size:.875rem;">
                                 <i class="bi bi-briefcase me-1"></i>
-                                {{ $tutor->experience_years ?? 0 }} tahun pengalaman
+                                {{ $totalExperience ?? 0 }} tahun pengalaman
                             </span>
                         </div>
                     </div>
@@ -94,9 +77,6 @@
         <div class="d-flex gap-0 mt-4" style="border-bottom:1px solid rgba(255,255,255,.1);">
             <a href="#profil-section" class="tk-profile-tab active" data-tab="profil">Profil</a>
             <a href="#jadwal-section" class="tk-profile-tab" data-tab="jadwal">Jadwal & Booking</a>
-            <a href="#ulasan-section" class="tk-profile-tab" data-tab="ulasan">
-                Ulasan ({{ $tutor->review_count ?? 0 }})
-            </a>
         </div>
     </div>
 </div>
@@ -104,14 +84,14 @@
 
 {{-- ================================================================
      BODY CONTENT
-================================================================ --}}
+=============================================================== --}}
 <div class="container py-5">
     <div class="row g-4">
 
         {{-- LEFT: Detail profil --}}
         <div class="col-lg-8">
 
-            {{-- PROFIL SECTION --}}
+            {{-- TENTANG SAYA --}}
             <div id="profil-section" class="tk-card mb-4">
                 <div class="tk-card-header">
                     <h2 class="tk-card-title">
@@ -120,27 +100,47 @@
                 </div>
                 <div class="tk-card-body">
                     <p style="font-size:.9375rem;line-height:1.7;color:var(--tk-text-muted);">
-                        {{ $tutor->bio ?? 'Tutor berpengalaman siap membantu belajarmu.' }}
+                        {{ $tutor->desc ?? 'Tutor berpengalaman siap membantu belajarmu.' }}
                     </p>
 
                     <div class="row g-3 mt-1">
                         <div class="col-sm-6">
                             <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:.875rem;">
                                 <div style="font-size:.75rem;color:var(--tk-text-muted);margin-bottom:4px;">
-                                    <i class="bi bi-mortarboard me-1"></i>Target jenjang
+                                    <i class="bi bi-gender-ambiguous me-1"></i>Jenis Kelamin
                                 </div>
                                 <div style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
-                                    {{ ucfirst($tutor->education_level ?? 'Semua jenjang') }}
+                                    {{ $tutor->jenis_kelamin ?? '-' }}
                                 </div>
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:.875rem;">
                                 <div style="font-size:.75rem;color:var(--tk-text-muted);margin-bottom:4px;">
-                                    <i class="bi bi-geo-alt me-1"></i>Lokasi mengajar
+                                    <i class="bi bi-geo-alt me-1"></i>Domisili
                                 </div>
                                 <div style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
-                                    Online & Tatap Muka
+                                    {{ $tutor->domisili ?? '-' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:.875rem;">
+                                <div style="font-size:.75rem;color:var(--tk-text-muted);margin-bottom:4px;">
+                                    <i class="bi bi-briefcase me-1"></i>Pekerjaan
+                                </div>
+                                <div style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
+                                    {{ $tutor->job ?? '-' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:.875rem;">
+                                <div style="font-size:.75rem;color:var(--tk-text-muted);margin-bottom:4px;">
+                                    <i class="bi bi-laptop me-1"></i>Lokasi Mengajar
+                                </div>
+                                <div style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
+                                    {{ ucfirst($tutor->lokasi_mengajar ?? 'Offline') }}
                                 </div>
                             </div>
                         </div>
@@ -148,7 +148,7 @@
                 </div>
             </div>
 
-            {{-- SPESIALISASI --}}
+            {{-- SPESIALISASI (TutorSubject + SubjectCategory) --}}
             <div class="tk-card mb-4">
                 <div class="tk-card-header">
                     <h2 class="tk-card-title">
@@ -156,40 +156,137 @@
                     </h2>
                 </div>
                 <div class="tk-card-body">
-                    <div class="d-flex flex-wrap gap-2">
-                        @forelse($tutor->mataPelajaran as $mp)
-                            <span class="tk-badge-subject" style="font-size:.875rem;padding:.375rem .875rem;">
-                                {{ $mp->icon ?? '📚' }} {{ $mp->nama }}
-                            </span>
-                        @empty
-                            <span class="text-muted small">Belum ada spesialisasi.</span>
-                        @endforelse
-                    </div>
+                    @forelse($tutor->tutorSubjects as $ts)
+                        <div style="padding:.75rem 0;{{ !$loop->last ? 'border-bottom:1px solid var(--tk-border-light);' : '' }}">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
+                                    📚 {{ $ts->subjectCategory->name ?? '-' }}
+                                </span>
+                                <span class="tk-badge tk-badge-completed" style="font-size:.7rem;">
+                                    {{ $ts->tingkatan }}
+                                </span>
+                            </div>
+                            @if($ts->deskripsi)
+                                <p style="font-size:.8125rem;color:var(--tk-text-muted);margin:0;line-height:1.5;">
+                                    {{ $ts->deskripsi }}
+                                </p>
+                            @endif
+                        </div>
+                    @empty
+                        <span class="text-muted small">Belum ada spesialisasi.</span>
+                    @endforelse
                 </div>
             </div>
+
+            {{-- PENGALAMAN MENGAJAR (TutorProfile) --}}
+            @if($tutor->tutorProfiles->isNotEmpty())
+            <div class="tk-card mb-4">
+                <div class="tk-card-header">
+                    <h2 class="tk-card-title">
+                        <i class="bi bi-briefcase me-2 text-primary"></i>Pengalaman Mengajar
+                    </h2>
+                </div>
+                <div class="tk-card-body">
+                    @foreach($tutor->tutorProfiles as $exp)
+                        <div style="padding:.75rem 0;{{ !$loop->last ? 'border-bottom:1px solid var(--tk-border-light);' : '' }}">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
+                                    {{ $exp->tempat ?? '-' }}
+                                </span>
+                                <span style="font-size:.75rem;color:var(--tk-text-muted);">
+                                    {{ $exp->periode }}
+                                </span>
+                            </div>
+                            <div class="d-flex gap-3" style="font-size:.8125rem;color:var(--tk-text-muted);">
+                                <span><i class="bi bi-clock me-1"></i>{{ $exp->experience_years }} tahun</span>
+                                <span><i class="bi bi-people me-1"></i>{{ $exp->jumlah_siswa }} siswa</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- RIWAYAT PENDIDIKAN (StudiedHistory) --}}
+            @if($tutor->studiedHistories->isNotEmpty())
+            <div class="tk-card mb-4">
+                <div class="tk-card-header">
+                    <h2 class="tk-card-title">
+                        <i class="bi bi-mortarboard me-2 text-primary"></i>Riwayat Pendidikan
+                    </h2>
+                </div>
+                <div class="tk-card-body">
+                    @foreach($tutor->studiedHistories as $edu)
+                        <div style="padding:.75rem 0;{{ !$loop->last ? 'border-bottom:1px solid var(--tk-border-light);' : '' }}">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span style="font-size:.9rem;font-weight:500;color:var(--tk-text);">
+                                    {{ $edu->sekolah }}
+                                </span>
+                                <span style="font-size:.75rem;color:var(--tk-text-muted);">
+                                    {{ $edu->periode }}
+                                </span>
+                            </div>
+                            <div style="font-size:.8125rem;color:var(--tk-text-muted);">
+                                @if($edu->jenjang)
+                                    <span class="tk-badge" style="font-size:.7rem;background:var(--tk-surface);color:var(--tk-text-muted);margin-right:6px;">{{ $edu->jenjang }}</span>
+                                @endif
+                                {{ $edu->jurusan }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- JADWAL GLOBAL (weekly overview) --}}
+            @if($schedulesByDay->isNotEmpty())
+            <div class="tk-card mb-4">
+                <div class="tk-card-header">
+                    <h2 class="tk-card-title">
+                        <i class="bi bi-calendar-week me-2 text-primary"></i>Jadwal Ketersediaan
+                    </h2>
+                    <span style="font-size:.75rem;color:var(--tk-text-muted);">Ringkasan mingguan</span>
+                </div>
+                <div class="tk-card-body">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
+                        @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $day)
+                            @php $daySlots = $schedulesByDay->get($day, collect()); @endphp
+                            <div style="border:1px solid var(--tk-border-light);border-radius:var(--tk-radius-lg);padding:.625rem;text-align:center;">
+                                <div style="font-size:.75rem;font-weight:600;color:var(--tk-text);margin-bottom:{{ $daySlots->isNotEmpty() ? '6px' : '0' }};">
+                                    {{ $day }}
+                                </div>
+                                @if($daySlots->isNotEmpty())
+                                    <div style="display:flex;flex-direction:column;gap:2px;">
+                                        @foreach($daySlots as $slot)
+                                            <span style="font-size:.7rem;padding:2px 4px;border-radius:4px;background:var(--tk-success-bg);color:var(--tk-success-text);">
+                                                {{ $slot->jam_start }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span style="font-size:.7rem;color:var(--tk-text-muted);opacity:.5;">—</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    <p style="font-size:.75rem;color:var(--tk-text-muted);margin:10px 0 0;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Setiap slot berdurasi 1 jam. Pilih tanggal di bawah untuk melihat ketersediaan detail.
+                    </p>
+                </div>
+            </div>
+            @endif
 
             {{-- JADWAL & BOOKING ──────────────────────────────── --}}
             <div id="jadwal-section" class="tk-card mb-4">
                 <div class="tk-card-header">
                     <h2 class="tk-card-title">
-                        <i class="bi bi-calendar3 me-2 text-primary"></i>Jadwal Ketersediaan
+                        <i class="bi bi-calendar3 me-2 text-primary"></i>Pesan Sesi Belajar
                     </h2>
-                    <div class="d-flex gap-3 align-items-center">
-                        <span class="d-flex align-items-center gap-1" style="font-size:.75rem;color:var(--tk-text-muted);">
-                            <span style="width:10px;height:10px;background:var(--tk-success-bg);border:1px solid var(--tk-success-border);border-radius:2px;display:inline-block;"></span>Tersedia
-                        </span>
-                        <span class="d-flex align-items-center gap-1" style="font-size:.75rem;color:var(--tk-text-muted);">
-                            <span style="width:10px;height:10px;background:var(--tk-danger-bg);border:1px solid var(--tk-danger-border);border-radius:2px;display:inline-block;"></span>Penuh
-                        </span>
-                        <span class="d-flex align-items-center gap-1" style="font-size:.75rem;color:var(--tk-text-muted);">
-                            <span style="width:10px;height:10px;background:var(--tk-primary);border-radius:2px;display:inline-block;"></span>Dipilih
-                        </span>
-                    </div>
                 </div>
                 <div class="tk-card-body">
 
                     @guest
-                        {{-- Guest: CTA login dulu --}}
                         <div class="text-center py-4"
                              style="background:var(--tk-primary-50);border-radius:var(--tk-radius-lg);
                                     border:1px dashed var(--tk-primary-100);">
@@ -197,81 +294,97 @@
                             <h6 class="mt-2 mb-1">Login untuk melihat & memilih jadwal</h6>
                             <p class="text-muted small mb-3">Daftar gratis atau masuk ke akun Anda.</p>
                             <div class="d-flex gap-2 justify-content-center">
-                                <a href="{{ route('login') }}" class="tk-btn-primary" style="width:auto;padding:.5rem 1.25rem;">
-                                    Masuk
-                                </a>
-                                <a href="{{ route('register') }}" class="tk-btn-outline-primary">
-                                    Daftar Gratis
-                                </a>
+                                <a href="{{ route('login') }}" class="tk-btn-primary" style="width:auto;padding:.5rem 1.25rem;">Masuk</a>
+                                <a href="{{ route('register') }}" class="tk-btn-outline-primary">Daftar Gratis</a>
                             </div>
                         </div>
                     @endguest
 
                     @auth
-                        {{-- Loading state --}}
-                        <div id="jadwalLoading" class="text-center py-4">
-                            <div class="tk-spinner tk-spinner-dark mx-auto mb-2"></div>
-                            <p class="text-muted small mb-0">Memuat jadwal...</p>
+                        {{-- Step 1: Pilih tanggal --}}
+                        <div id="stepTanggal">
+                            <div style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:1.25rem;">
+                                <label class="tk-form-label" for="tanggalPicker" style="font-size:.875rem;font-weight:500;">
+                                    <i class="bi bi-calendar-event me-1"></i>Pilih Tanggal Kelas
+                                </label>
+                                <input type="date" id="tanggalPicker" class="tk-form-control" style="max-width:240px;">
+                                <div id="tanggalInfo" style="font-size:.75rem;color:var(--tk-text-muted);margin-top:6px;">
+                                    Minimal booking H-3 dari hari ini.
+                                </div>
+                                <div id="tanggalErr" style="display:none;font-size:.75rem;color:var(--tk-danger-text);margin-top:4px;"></div>
+                            </div>
                         </div>
 
-                        {{-- Jadwal table --}}
-                        <div id="jadwalContainer" style="display:none;">
-                            <div class="table-responsive">
-                                <table class="tk-schedule-table" id="jadwalTable">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:70px;">Jam</th>
-                                            {{-- Hari di-inject JS --}}
-                                        </tr>
-                                    </thead>
-                                    <tbody id="jadwalBody">
-                                        {{-- Diisi via JS --}}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {{-- Slot terpilih --}}
-                            <div id="selectedSlotInfo" class="mt-3"
-                                 style="display:none;background:var(--tk-primary-50);
-                                        border:1px solid var(--tk-primary-100);
-                                        border-radius:var(--tk-radius-lg);padding:1rem;">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <div style="font-size:.875rem;font-weight:500;color:var(--tk-primary-dark);">
-                                            <i class="bi bi-calendar-check me-1"></i>
-                                            <span id="selectedSlotText"></span>
-                                        </div>
-                                        <div style="font-size:.8125rem;color:var(--tk-primary-light);margin-top:2px;">
-                                            Durasi: 1 jam ·
-                                            Total: <strong id="selectedSlotTotal"></strong>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-close btn-close-sm" id="clearSlot"></button>
+                        {{-- Step 2: Pilih jam (muncul setelah tanggal dipilih) --}}
+                        <div id="stepJam" style="display:none;" class="mt-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div>
+                                    <span style="font-size:.875rem;font-weight:500;color:var(--tk-text);">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Slot Tersedia — <strong id="labelHari"></strong>, <strong id="labelTanggal"></strong>
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center" style="font-size:.7rem;">
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span style="width:8px;height:8px;background:var(--tk-success-bg);border:1px solid var(--tk-success-border);border-radius:2px;"></span>Tersedia
+                                    </span>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span style="width:8px;height:8px;background:var(--tk-danger-bg);border:1px solid var(--tk-danger-border);border-radius:2px;"></span>Penuh
+                                    </span>
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span style="width:8px;height:8px;background:var(--tk-primary);border-radius:2px;"></span>Dipilih
+                                    </span>
                                 </div>
                             </div>
 
-                            {{-- Durasi selector --}}
-                            <div id="durasiSelector" class="mt-3" style="display:none;">
-                                <label class="tk-form-label" for="durasiSelect">Durasi Sesi</label>
-                                <select id="durasiSelect" class="tk-form-control" style="max-width:200px;">
-                                    <option value="1">1 jam — Rp {{ number_format($tutor->hourly_rate ?? 0, 0, ',', '.') }}</option>
-                                    <option value="1.5">1.5 jam — Rp {{ number_format(($tutor->hourly_rate ?? 0) * 1.5, 0, ',', '.') }}</option>
-                                    <option value="2">2 jam — Rp {{ number_format(($tutor->hourly_rate ?? 0) * 2, 0, ',', '.') }}</option>
-                                    <option value="3">3 jam — Rp {{ number_format(($tutor->hourly_rate ?? 0) * 3, 0, ',', '.') }}</option>
-                                </select>
+                            {{-- Loading --}}
+                            <div id="slotsLoading" class="text-center py-3">
+                                <div class="tk-spinner tk-spinner-dark mx-auto mb-2"></div>
+                                <p class="text-muted small mb-0">Memuat slot...</p>
                             </div>
 
-                            {{-- Catatan --}}
-                            <div id="catatanWrapper" class="mt-3" style="display:none;">
-                                <label class="tk-form-label" for="catatan">Catatan untuk Tutor (opsional)</label>
-                                <textarea id="catatan" rows="2" class="tk-form-control"
+                            {{-- Slot list --}}
+                            <div id="slotsList" style="display:none;"></div>
+
+                            {{-- Empty --}}
+                            <div id="slotsEmpty" style="display:none;">
+                                <div class="text-center py-3">
+                                    <i class="bi bi-calendar-x text-muted" style="font-size:1.5rem;opacity:.4;"></i>
+                                    <p class="text-muted small mt-2 mb-0">Tidak ada slot di hari ini.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Step 3: Ringkasan & konfirmasi --}}
+                        <div id="stepKonfirmasi" style="display:none;" class="mt-3">
+                            <div style="background:var(--tk-primary-50);border:1px solid var(--tk-primary-100);border-radius:var(--tk-radius-lg);padding:1rem;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <div style="font-size:.875rem;font-weight:500;color:var(--tk-primary-dark);">
+                                            <i class="bi bi-check2-circle me-1"></i>
+                                            <span id="ringkasanSlot"></span>
+                                        </div>
+                                        <div style="font-size:.75rem;color:var(--tk-primary-light);margin-top:2px;">
+                                            <span id="ringkasanJam"></span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-sm" id="clearSelection"></button>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid var(--tk-primary-100);">
+                                    <span style="font-size:.8125rem;color:var(--tk-primary-dark);">Total Pembayaran</span>
+                                    <strong id="ringkasanTotal" style="font-size:1rem;color:var(--tk-primary-dark);"></strong>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="tk-form-label" for="catatanInput">Catatan untuk Tutor (opsional)</label>
+                                <textarea id="catatanInput" rows="2" class="tk-form-control"
                                           placeholder="cth: Saya butuh bantuan bab limit dan turunan..."></textarea>
                             </div>
 
-                            {{-- Tombol pesan --}}
-                            <div class="mt-3" id="pesanBtnWrapper" style="display:none;">
+                            <div class="mt-3">
                                 @if(Auth::user()?->role === 'siswa')
-                                    <button type="button" class="tk-btn-primary" id="pesanBtn"
+                                    <button type="button" class="tk-btn-primary" id="btnPesan"
                                             style="width:auto;padding:.6875rem 1.75rem;">
                                         <i class="bi bi-calendar-plus"></i> Pesan Sekarang
                                     </button>
@@ -283,63 +396,8 @@
                                 @endif
                             </div>
                         </div>
-
-                        {{-- Empty state --}}
-                        <div id="jadwalEmpty" style="display:none;">
-                            <div class="text-center py-4">
-                                <i class="bi bi-calendar-x text-muted" style="font-size:2.5rem;opacity:.4;"></i>
-                                <h6 class="mt-2 text-muted">Belum ada jadwal tersedia</h6>
-                                <p class="text-muted small mb-0">Tutor ini belum mengatur ketersediaan jadwal.</p>
-                            </div>
-                        </div>
                     @endauth
 
-                </div>
-            </div>
-
-            {{-- ULASAN ─────────────────────────────────────────── --}}
-            <div id="ulasan-section" class="tk-card">
-                <div class="tk-card-header">
-                    <h2 class="tk-card-title">
-                        <i class="bi bi-star me-2 text-primary"></i>
-                        Ulasan Siswa
-                    </h2>
-                    <div style="font-size:.875rem;color:var(--tk-text-muted);">
-                        Rata-rata {{ $rating }}/5
-                    </div>
-                </div>
-                <div class="tk-card-body">
-                    @forelse($reviews as $review)
-                        <div class="d-flex gap-3 py-3 {{ !$loop->last ? 'border-bottom' : '' }}">
-                            <div class="tk-tutor-avatar flex-shrink-0"
-                                 style="width:36px;height:36px;font-size:.8rem;">
-                                {{ strtoupper(substr($review->siswa->name ?? 'A', 0, 2)) }}
-                            </div>
-                            <div class="flex-1">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <span style="font-size:.875rem;font-weight:500;">
-                                        {{ $review->siswa->name ?? 'Siswa' }}
-                                    </span>
-                                    <span style="font-size:.75rem;color:var(--tk-text-muted);">
-                                        {{ $review->created_at->diffForHumans() }}
-                                    </span>
-                                </div>
-                                <div class="tk-stars mb-1" style="font-size:.8rem;">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i class="bi bi-star{{ $i <= $review->rating ? '-fill' : '' }}"></i>
-                                    @endfor
-                                </div>
-                                <p class="text-muted mb-0" style="font-size:.875rem;line-height:1.6;">
-                                    {{ $review->comment }}
-                                </p>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-4">
-                            <i class="bi bi-chat-square-text text-muted" style="font-size:2rem;opacity:.4;"></i>
-                            <p class="text-muted small mt-2 mb-0">Belum ada ulasan.</p>
-                        </div>
-                    @endforelse
                 </div>
             </div>
 
@@ -354,19 +412,15 @@
                         <div class="tk-tutor-avatar mx-auto mb-2"
                              style="width:64px;height:64px;font-size:1.25rem;
                                     background:var(--tk-primary-light);color:#fff;">
-                            {{ strtoupper(substr($tutor->user->name ?? 'TK', 0, 2)) }}
+                            @if($tutor->foto)
+                                <img src="{{ asset('storage/' . $tutor->foto) }}" alt=""
+                                     style="width:64px;height:64px;border-radius:50%;object-fit:cover;">
+                            @else
+                                {{ strtoupper(substr($tutor->name ?? 'TK', 0, 2)) }}
+                            @endif
                         </div>
-                        <h3 style="font-size:1rem;font-weight:600;">{{ $tutor->user->name }}</h3>
-                        <div class="tk-stars mb-1" style="font-size:.875rem;">
-                            @for($i = 1; $i <= 5; $i++)
-                                @if($i <= floor($rating))
-                                    <i class="bi bi-star-fill"></i>
-                                @else
-                                    <i class="bi bi-star"></i>
-                                @endif
-                            @endfor
-                            <span class="text-muted ms-1" style="font-size:.75rem;">{{ $rating }}</span>
-                        </div>
+                        <h3 style="font-size:1rem;font-weight:600;">{{ $tutor->name }}</h3>
+                        <div style="font-size:.8125rem;color:var(--tk-text-muted);">{{ $tutor->job }}</div>
                     </div>
 
                     <div class="d-flex justify-content-between py-2" style="border-top:1px solid var(--tk-border-light);">
@@ -377,17 +431,19 @@
                     </div>
                     <div class="d-flex justify-content-between py-2" style="border-top:1px solid var(--tk-border-light);">
                         <span class="text-muted" style="font-size:.875rem;">Pengalaman</span>
-                        <span style="font-weight:500;">{{ $tutor->experience_years ?? 0 }} tahun</span>
+                        <span style="font-weight:500;">{{ $totalExperience ?? 0 }} tahun</span>
                     </div>
                     <div class="d-flex justify-content-between py-2" style="border-top:1px solid var(--tk-border-light);">
                         <span class="text-muted" style="font-size:.875rem;">Sesi selesai</span>
                         <span style="font-weight:500;">{{ $tutor->session_count ?? 0 }}</span>
                     </div>
+                    <div class="d-flex justify-content-between py-2" style="border-top:1px solid var(--tk-border-light);">
+                        <span class="text-muted" style="font-size:.875rem;">Domisili</span>
+                        <span style="font-weight:500;">{{ $tutor->domisili ?? '-' }}</span>
+                    </div>
                     <div class="d-flex justify-content-between py-2 mb-3" style="border-top:1px solid var(--tk-border-light);">
-                        <span class="text-muted" style="font-size:.875rem;">Status</span>
-                        <span class="tk-badge tk-badge-completed">
-                            <i class="bi bi-patch-check-fill"></i> Terverifikasi
-                        </span>
+                        <span class="text-muted" style="font-size:.875rem;">Lokasi</span>
+                        <span style="font-weight:500;">{{ ucfirst($tutor->lokasi_mengajar ?? 'Offline') }}</span>
                     </div>
 
                     <a href="#jadwal-section" class="tk-btn-primary d-flex align-items-center justify-content-center gap-2">
@@ -395,12 +451,14 @@
                     </a>
 
                     <div class="mt-3 text-center">
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tutor->user->phone ?? '') }}"
-                           target="_blank"
-                           class="d-inline-flex align-items-center gap-2 text-decoration-none"
-                           style="font-size:.8125rem;color:var(--tk-success-text);">
-                            <i class="bi bi-whatsapp"></i> Chat via WhatsApp
-                        </a>
+                        @if($tutor->user->no_hp)
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tutor->user->no_hp) }}"
+                               target="_blank"
+                               class="d-inline-flex align-items-center gap-2 text-decoration-none"
+                               style="font-size:.8125rem;color:var(--tk-success-text);">
+                                <i class="bi bi-whatsapp"></i> Chat via WhatsApp
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -433,32 +491,27 @@
 <script>
 const TUTOR_ID    = {{ $tutor->id }};
 const HOURLY_RATE = {{ $tutor->hourly_rate ?? 0 }};
-let selectedSlot  = null;
+const HARI_MAP    = {0:'Minggu',1:'Senin',2:'Selasa',3:'Rabu',4:'Kamis',5:'Jumat',6:'Sabtu'};
+let selectedSlots = [];
+let availableDays = [];
+let selectedTanggal = '';
 
 $(document).ready(function () {
 
     @auth
-    // ── Load jadwal via AJAX ─────────────────────────────────
-    loadJadwal();
-
-    // ── Clear pilihan ────────────────────────────────────────
-    $('#clearSlot').on('click', clearSelection);
-
-    // ── Durasi change → update total harga ──────────────────
-    $('#durasiSelect').on('change', updateTotal);
-
-    // ── Tombol Pesan Sekarang ────────────────────────────────
-    $('#pesanBtn').on('click', submitBooking);
+    loadAvailableDays();
+    $('#tanggalPicker').on('change', onTanggalChange);
+    $('#clearSelection').on('click', clearSelection);
+    $('#btnPesan').on('click', submitBooking);
     @endauth
 
-    // ── Smooth scroll tab ────────────────────────────────────
     $('.tk-profile-tab').on('click', function (e) {
         const target = $(this).attr('href');
         if (target.startsWith('#')) {
             e.preventDefault();
             const $target = $(target);
             if ($target.length) {
-                $('html,body').animate({ scrollTop: $target.offset().top - 80 }, 350);
+                $('html,body').animate({scrollTop: $target.offset().top - 80}, 350);
             }
         }
         $('.tk-profile-tab').removeClass('active');
@@ -467,142 +520,192 @@ $(document).ready(function () {
 
 });
 
-// ── Load jadwal dari API ─────────────────────────────────────
-function loadJadwal() {
-    $('#jadwalLoading').show();
-    $('#jadwalContainer, #jadwalEmpty').hide();
+function loadAvailableDays() {
+    $.ajax({
+        url: `/api/tutor/${TUTOR_ID}/available-days`,
+        method: 'GET',
+        success: function (res) {
+            availableDays = res.days || [];
+            const minDate = new Date();
+            minDate.setDate(minDate.getDate() + 3);
+            $('#tanggalPicker').attr('min', minDate.toISOString().split('T')[0]);
+        }
+    });
+}
+
+function onTanggalChange() {
+    const val = $('#tanggalPicker').val();
+    const $err = $('#tanggalErr');
+    $err.hide();
+    $('#stepJam, #stepKonfirmasi').hide();
+    selectedSlots = [];
+
+    if (!val) return;
+
+    const selected = new Date(val + 'T00:00:00');
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 3);
+    minDate.setHours(0,0,0,0);
+
+    if (selected < minDate) {
+        $err.text('Minimal booking H-3 dari hari ini.').show();
+        return;
+    }
+
+    const dayName = HARI_MAP[selected.getDay()];
+    if (availableDays.length > 0 && !availableDays.includes(dayName)) {
+        $err.text('Tutor tidak tersedia di hari ' + dayName + '.').show();
+        return;
+    }
+
+    selectedTanggal = val;
+    loadSlots(val, dayName);
+}
+
+function loadSlots(tanggal, hari) {
+    $('#stepJam').show();
+    $('#slotsLoading').show();
+    $('#slotsList, #slotsEmpty').hide();
+
+    $('#labelHari').text(hari);
+    const parts = tanggal.split('-');
+    const tanggalObj = new Date(parts[0], parts[1] - 1, parts[2]);
+    const options = {day:'numeric', month:'long', year:'numeric'};
+    $('#labelTanggal').text(tanggalObj.toLocaleDateString('id-ID', options));
 
     $.ajax({
-        url: `/api/tutor/${TUTOR_ID}/jadwal`,
+        url: `/api/tutor/${TUTOR_ID}/jadwal?tanggal=${tanggal}`,
         method: 'GET',
         success: function (res) {
             const slots = res.data || [];
+            $('#slotsLoading').hide();
+
             if (!slots.length) {
-                $('#jadwalLoading').hide();
-                $('#jadwalEmpty').show();
+                $('#slotsEmpty').show();
                 return;
             }
-            buildTable(slots);
-            $('#jadwalLoading').hide();
-            $('#jadwalContainer').show();
+
+            renderSlots(slots);
+            $('#slotsList').show();
         },
         error: function () {
-            $('#jadwalLoading').hide();
-            $('#jadwalEmpty').show();
+            $('#slotsLoading').hide();
+            $('#slotsEmpty').show();
         }
     });
 }
 
-// ── Bangun tabel jadwal ──────────────────────────────────────
-function buildTable(slots) {
-    // Kumpulkan hari & jam unik
-    const hariOrder = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
-    const hariList  = [...new Set(slots.map(s => s.hari))].sort((a,b) => hariOrder.indexOf(a) - hariOrder.indexOf(b));
-    const jamList   = [...new Set(slots.map(s => s.jam_mulai))].sort();
+function renderSlots(slots) {
+    let html = '<div style="display:flex;flex-direction:column;gap:6px;">';
 
-    // Header
-    let headHtml = '<tr><th>Jam</th>';
-    hariList.forEach(h => { headHtml += `<th>${h}</th>`; });
-    headHtml += '</tr>';
-    $('#jadwalTable thead').html(headHtml);
-
-    // Body
-    let bodyHtml = '';
-    jamList.forEach(function (jam) {
-        bodyHtml += `<tr><td>${jam}</td>`;
-        hariList.forEach(function (hari) {
-            const slot = slots.find(s => s.hari === hari && s.jam_mulai === jam);
-            if (!slot) {
-                bodyHtml += '<td><span style="color:var(--tk-border);font-size:.75rem;">—</span></td>';
-            } else if (slot.is_booked) {
-                bodyHtml += `<td><span class="tk-slot tk-slot-booked">Penuh</span></td>`;
-            } else {
-                bodyHtml += `<td>
-                    <span class="tk-slot tk-slot-free"
-                          data-schedule-id="${slot.id}"
-                          data-hari="${slot.hari}"
-                          data-jam="${slot.jam_mulai}"
-                          onclick="selectSlot(this)">
-                        Pilih
+    slots.forEach(function (slot) {
+        if (slot.is_booked) {
+            html += `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:var(--tk-danger-bg);border:1px solid var(--tk-danger-border);">
+                    <div>
+                        <span style="font-size:.875rem;font-weight:500;color:var(--tk-danger-text);">
+                            ${slot.jam_mulai} — ${slot.jam_selesai} WIB
+                        </span>
+                    </div>
+                    <span style="font-size:.75rem;color:var(--tk-danger-text);opacity:.7;">
+                        <i class="bi bi-lock-fill me-1"></i>Sudah dipesan
                     </span>
-                </td>`;
-            }
-        });
-        bodyHtml += '</tr>';
-    });
-    $('#jadwalBody').html(bodyHtml);
-}
-
-// ── Pilih slot ───────────────────────────────────────────────
-function selectSlot(el) {
-    const $el = $(el);
-
-    // Reset semua ke free
-    $('.tk-slot-free, .tk-slot-selected').each(function () {
-        if (!$(this).hasClass('tk-slot-booked')) {
-            $(this).removeClass('tk-slot-selected').addClass('tk-slot-free').text('Pilih');
+                </div>`;
+        } else {
+            html += `
+                <div class="slot-item" data-schedule-id="${slot.id}" data-jam="${slot.jam_mulai}" data-jam-selesai="${slot.jam_selesai}"
+                     onclick="toggleSlot(this)"
+                     style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;background:var(--tk-success-bg);border:1px solid var(--tk-success-border);cursor:pointer;transition:all .15s;">
+                    <span style="font-size:.875rem;font-weight:500;color:var(--tk-success-text);">
+                        ${slot.jam_mulai} — ${slot.jam_selesai} WIB
+                    </span>
+                    <span style="font-size:.75rem;color:var(--tk-success-text);">
+                        Tersedia
+                    </span>
+                </div>`;
         }
     });
 
-    // Set yang dipilih
-    $el.removeClass('tk-slot-free').addClass('tk-slot-selected').text('✓ Dipilih');
-
-    selectedSlot = {
-        scheduleId: $el.data('schedule-id'),
-        hari: $el.data('hari'),
-        jam:  $el.data('jam'),
-    };
-
-    updateTotal();
-    $('#selectedSlotInfo, #durasiSelector, #catatanWrapper, #pesanBtnWrapper').show();
+    html += '</div>';
+    $('#slotsList').html(html);
 }
 
-function updateTotal() {
-    if (!selectedSlot) return;
-    const durasi  = parseFloat($('#durasiSelect').val()) || 1;
-    const total   = HOURLY_RATE * durasi;
-    const durasiText = durasi === 1 ? '1 jam' : durasi + ' jam';
+function toggleSlot(el) {
+    const $el = $(el);
+    const scheduleId = $el.data('schedule-id');
+    const jam = $el.data('jam');
+    const jamSelesai = $el.data('jam-selesai');
 
-    $('#selectedSlotText').text(`${selectedSlot.hari}, ${selectedSlot.jam} WIB — ${durasiText}`);
-    $('#selectedSlotTotal').text('Rp ' + total.toLocaleString('id-ID'));
+    const idx = selectedSlots.findIndex(s => s.scheduleId === scheduleId);
+    if (idx >= 0) {
+        selectedSlots.splice(idx, 1);
+        $el.css({background:'var(--tk-success-bg)', border:'1px solid var(--tk-success-border)'});
+        $el.find('.slot-check').remove();
+    } else {
+        selectedSlots.push({scheduleId, jam, jamSelesai});
+        $el.css({background:'var(--tk-primary-50)', border:'2px solid var(--tk-primary)'});
+        $el.append('<span class="slot-check" style="margin-left:8px;font-size:.875rem;color:var(--tk-primary);"><i class="bi bi-check-circle-fill"></i></span>');
+    }
+
+    selectedSlots.sort((a, b) => a.jam.localeCompare(b.jam));
+    updateKonfirmasi();
+}
+
+function addOneHour(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    return String((h + 1) % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function updateKonfirmasi() {
+    if (selectedSlots.length === 0) {
+        $('#stepKonfirmasi').hide();
+        return;
+    }
+
+    const jamList = selectedSlots.map(s => s.jam);
+    const lastJamEnd = addOneHour(selectedSlots[selectedSlots.length - 1].jamSelesai || addOneHour(selectedSlots[selectedSlots.length - 1].jam));
+    const jamTampil = jamList.length === 1
+        ? jamList[0] + ' – ' + addOneHour(jamList[0]) + ' WIB'
+        : jamList[0] + ' – ' + lastJamEnd + ' WIB';
+
+    const total = HOURLY_RATE * selectedSlots.length;
+
+    $('#ringkasanSlot').text(selectedSlots.length + ' jam dipilih');
+    $('#ringkasanJam').text(jamTampil);
+    $('#ringkasanTotal').text('Rp ' + total.toLocaleString('id-ID'));
+    $('#stepKonfirmasi').show();
 }
 
 function clearSelection() {
-    selectedSlot = null;
-    $('.tk-slot-selected').removeClass('tk-slot-selected').addClass('tk-slot-free').text('Pilih');
-    $('#selectedSlotInfo, #durasiSelector, #catatanWrapper, #pesanBtnWrapper').hide();
+    selectedSlots = [];
+    $('.slot-item').each(function () {
+        $(this).css({background:'var(--tk-success-bg)', border:'1px solid var(--tk-success-border)'});
+        $(this).find('.slot-check').remove();
+    });
+    $('#stepKonfirmasi').hide();
 }
 
-// ── Submit booking via AJAX ──────────────────────────────────
 function submitBooking() {
-    if (!selectedSlot) return;
+    if (selectedSlots.length === 0 || !selectedTanggal) return;
 
-    const $btn = $('#pesanBtn');
+    const $btn = $('#btnPesan');
     $btn.prop('disabled', true)
         .html('<span class="tk-spinner me-2" style="width:14px;height:14px;border-width:2px;"></span>Memproses...');
 
+    const scheduleIds = selectedSlots.map(s => s.scheduleId);
+
     $.ajax({
-        url: '/api/booking',
+        url: '{{ route("api.booking.store") }}',
         method: 'POST',
         data: {
-            tutor_profile_id: TUTOR_ID,
-            schedule_id:      selectedSlot.scheduleId,
-            durasi:           parseFloat($('#durasiSelect').val()) || 1,
-            catatan:          $('#catatan').val(),
-            _token:           $('meta[name="csrf-token"]').attr('content'),
+            'schedule_ids[]': scheduleIds,
+            tanggal: selectedTanggal,
+            catatan: $('#catatanInput').val(),
+            _token: $('meta[name="csrf-token"]').attr('content'),
         },
+        traditional: true,
         success: function (res) {
-            showToast('Pemesanan berhasil! Menunggu konfirmasi tutor.', 'success');
-            // Tandai slot jadi booked
-            $(`.tk-slot-selected`)
-                .removeClass('tk-slot-selected tk-slot-free')
-                .addClass('tk-slot-booked')
-                .text('Penuh')
-                .attr('onclick', '');
-
-            clearSelection();
-
-            // Redirect ke halaman riwayat pemesanan
+            showToast(res.message || 'Pemesanan berhasil!', 'success');
             setTimeout(() => {
                 window.location.href = res.redirect || '/siswa/pemesanan';
             }, 1500);
@@ -614,6 +717,19 @@ function submitBooking() {
                 .html('<i class="bi bi-calendar-plus"></i> Pesan Sekarang');
         }
     });
+}
+
+function showToast(msg, type) {
+    type = type || 'success';
+    const bg = type === 'success' ? '#ecfdf5' : '#fef2f2';
+    const color = type === 'success' ? '#065f46' : '#991b1b';
+    const border = type === 'success' ? '#a7f3d0' : '#fecaca';
+    const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill';
+    const toast = document.createElement('div');
+    toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;min-width:240px;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.1);background:${bg};color:${color};border:1px solid ${border};`;
+    toast.innerHTML = `<i class="bi bi-${icon}"></i> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(() => toast.remove(), 300); }, 3000);
 }
 </script>
 @endpush

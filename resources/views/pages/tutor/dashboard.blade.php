@@ -157,7 +157,7 @@
                     <i class="bi bi-star{{ $i <= $r ? '-fill' : '' }}"></i>
                 @endfor
             </div>
-            <div style="font-size:13px;color:#8890a8;">Dari <strong style="color:#1a1a2e;">{{ $stats['total_reviews'] ?? 24 }}</strong> ulasan siswa</div>
+            <div style="font-size:13px;color:#8890a8;">Rating dari siswa</div>
         </div>
 
         {{-- Aksi cepat --}}

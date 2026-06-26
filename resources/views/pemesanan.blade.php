@@ -181,17 +181,6 @@
                                             </a>
                                         @endif
 
-                                        {{-- Beri ulasan (jika completed & belum review) --}}
-                                        @if($booking->status === 'completed' && !$booking->review)
-                                            <button type="button"
-                                                    class="tk-btn-outline-primary btn-beri-ulasan"
-                                                    data-booking-id="{{ $booking->id }}"
-                                                    data-tutor-name="{{ $booking->tutorProfile->user->name }}"
-                                                    style="padding:.375rem .875rem;font-size:.8125rem;">
-                                                <i class="bi bi-star"></i> Beri Ulasan
-                                            </button>
-                                        @endif
-
                                         {{-- Batalkan (jika masih pending) --}}
                                         @if($booking->status === 'pending')
                                             <button type="button"
@@ -269,50 +258,6 @@
 </div>
 
 {{-- ================================================================
-     MODAL ULASAN
-================================================================ --}}
-<div class="modal fade" id="ulasanModal" tabindex="-1" aria-labelledby="ulasanModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:var(--tk-radius-xl);border:none;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-600" id="ulasanModalLabel">Beri Ulasan Tutor</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small mb-3" id="ulasanTutorName"></p>
-
-                {{-- Rating bintang --}}
-                <div class="mb-3">
-                    <label class="tk-form-label">Rating</label>
-                    <div class="d-flex gap-2" id="starPicker">
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="bi bi-star star-btn"
-                               data-value="{{ $i }}"
-                               style="font-size:1.75rem;color:#e2e8f0;cursor:pointer;transition:color .1s;"></i>
-                        @endfor
-                    </div>
-                    <input type="hidden" id="ratingValue" value="0">
-                </div>
-
-                {{-- Komentar --}}
-                <div class="mb-3">
-                    <label class="tk-form-label" for="ulasanKomentar">Komentar</label>
-                    <textarea id="ulasanKomentar" rows="3" class="tk-form-control"
-                              placeholder="Ceritakan pengalaman belajar Anda bersama tutor ini..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="tk-btn-primary" id="submitUlasan"
-                        style="width:auto;padding:.5rem 1.25rem;">
-                    <i class="bi bi-send"></i> Kirim Ulasan
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ================================================================
      MODAL KONFIRMASI BATALKAN
 ================================================================ --}}
 <div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
@@ -351,75 +296,7 @@
 $(document).ready(function () {
 
     let activeBookingId = null;
-    const ulasanModal  = new bootstrap.Modal('#ulasanModal');
     const cancelModal  = new bootstrap.Modal('#cancelModal');
-
-    // ── BERI ULASAN ──────────────────────────────────────────
-    $(document).on('click', '.btn-beri-ulasan', function () {
-        activeBookingId = $(this).data('booking-id');
-        const tutorName = $(this).data('tutor-name');
-
-        $('#ulasanTutorName').text('Tutor: ' + tutorName);
-        $('#ratingValue').val(0);
-        $('#ulasanKomentar').val('');
-        resetStars(0);
-
-        ulasanModal.show();
-    });
-
-    // Star picker hover & click
-    $('#starPicker').on('mouseenter', '.star-btn', function () {
-        const val = $(this).data('value');
-        highlightStars(val);
-    }).on('mouseleave', function () {
-        highlightStars(parseInt($('#ratingValue').val()) || 0);
-    }).on('click', '.star-btn', function () {
-        const val = $(this).data('value');
-        $('#ratingValue').val(val);
-        highlightStars(val);
-    });
-
-    function highlightStars(val) {
-        $('.star-btn').each(function () {
-            const sv = parseInt($(this).data('value'));
-            $(this)
-                .removeClass('bi-star bi-star-fill')
-                .addClass(sv <= val ? 'bi-star-fill' : 'bi-star')
-                .css('color', sv <= val ? '#f59e0b' : '#e2e8f0');
-        });
-    }
-
-    function resetStars(val) { highlightStars(val); }
-
-    // Submit ulasan
-    $('#submitUlasan').on('click', function () {
-        const rating   = parseInt($('#ratingValue').val());
-        const komentar = $('#ulasanKomentar').val().trim();
-
-        if (rating === 0) { showToast('Pilih rating bintang terlebih dahulu.', 'warning'); return; }
-        if (!komentar)    { showToast('Tulis komentar singkat tentang sesi ini.', 'warning'); return; }
-
-        const $btn = $(this);
-        $btn.prop('disabled', true).html('<span class="tk-spinner me-2" style="width:14px;height:14px;border-width:2px;"></span>Mengirim...');
-
-        $.ajax({
-            url: `/siswa/ulasan/${activeBookingId}`,
-            method: 'POST',
-            data: { rating, comment: komentar, _token: $('meta[name="csrf-token"]').attr('content') },
-            success: function () {
-                ulasanModal.hide();
-                showToast('Ulasan berhasil dikirim. Terima kasih!', 'success');
-                // Sembunyikan tombol ulasan pada card
-                $(`.btn-beri-ulasan[data-booking-id="${activeBookingId}"]`).remove();
-            },
-            error: function (xhr) {
-                showToast(xhr.responseJSON?.message || 'Gagal mengirim ulasan.', 'error');
-            },
-            complete: function () {
-                $btn.prop('disabled', false).html('<i class="bi bi-send"></i> Kirim Ulasan');
-            }
-        });
-    });
 
     // ── BATALKAN PEMESANAN ───────────────────────────────────
     $(document).on('click', '.btn-cancel-booking', function () {

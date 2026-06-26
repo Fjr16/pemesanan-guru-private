@@ -3,117 +3,168 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
-use App\Models\TutorProfile;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\ScheduleLock;
 use App\Models\TutorSchedule;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
-    /**
-     * POST /api/booking
-     * Siswa membuat booking baru
-     */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        $request->validate([
-            'tutor_profile_id' => ['required', 'exists:tutor_profiles,id'],
-            'schedule_id'      => ['required', 'exists:tutor_schedules,id'],
-            'durasi'           => ['required', 'numeric', 'in:1,1.5,2,3'],
-            'catatan'          => ['nullable', 'string', 'max:300'],
+        $user = Auth::user();
+
+        if ($user->role !== 'siswa') {
+            return response()->json(['message' => 'Hanya siswa yang dapat melakukan pemesanan.'], 403);
+        }
+
+        $student = $user->student;
+        if (! $student) {
+            return response()->json(['message' => 'Data siswa tidak ditemukan.'], 404);
+        }
+
+        $validated = $request->validate([
+            'schedule_ids' => ['required', 'array', 'min:1'],
+            'schedule_ids.*' => ['required', 'integer', 'exists:tutor_schedules,id'],
+            'tanggal' => ['required', 'date', 'after_or_equal:today'],
+            'catatan' => ['nullable', 'string', 'max:300'],
         ]);
 
-        $tutor    = TutorProfile::findOrFail($request->tutor_profile_id);
-        $schedule = TutorSchedule::where('id', $request->schedule_id)
-            ->where('tutor_profile_id', $tutor->id)
-            ->where('is_available', true)
-            ->firstOrFail();
+        $schedules = TutorSchedule::with('tutor')
+            ->whereIn('id', $validated['schedule_ids'])
+            ->get();
 
-        // Cek slot tidak di-booking orang lain saat bersamaan (race condition guard)
+        if ($schedules->count() !== count($validated['schedule_ids'])) {
+            return response()->json(['message' => 'Beberapa slot tidak ditemukan.'], 422);
+        }
+
+        $tutorId = $schedules->first()->tutor_id;
+        if ($schedules->contains(fn ($s) => $s->tutor_id !== $tutorId)) {
+            return response()->json(['message' => 'Semua slot harus dari tutor yang sama.'], 422);
+        }
+
+        $tutor = $schedules->first()->tutor;
+        if (! $tutor || $tutor->status !== 'active') {
+            return response()->json(['message' => 'Tutor tidak aktif.'], 422);
+        }
+
+        $selectedDate = Carbon::parse($validated['tanggal']);
+        $minDate = now()->addDays(3)->startOfDay();
+
+        if ($selectedDate->lt($minDate)) {
+            return response()->json([
+                'message' => 'Minimal booking H-3 (3 hari sebelum kelas). Pilih tanggal mulai '.$minDate->translatedFormat('d F Y').'.',
+            ], 422);
+        }
+
+        $dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $dayName = $dayNames[$selectedDate->dayOfWeek];
+
+        if ($schedules->contains(fn ($s) => $s->day !== $dayName)) {
+            return response()->json([
+                'message' => 'Semua slot harus di hari yang sama dengan tanggal yang dipilih ('.$dayName.').',
+            ], 422);
+        }
+
+        $sortedSlots = $schedules->sortBy('jam_start')->values();
+        for ($i = 1; $i < $sortedSlots->count(); $i++) {
+            $prevEnd = $sortedSlots[$i - 1]->jam_end instanceof Carbon
+                ? $sortedSlots[$i - 1]->jam_end->format('H:i')
+                : $sortedSlots[$i - 1]->jam_end;
+            $currStart = $sortedSlots[$i]->jam_start instanceof Carbon
+                ? $sortedSlots[$i]->jam_start->format('H:i')
+                : $sortedSlots[$i]->jam_start;
+
+            if ($prevEnd !== $currStart) {
+                return response()->json([
+                    'message' => 'Slot harus berurutan. Slot ke-'.($i + 1).' tidak berdampingan dengan slot sebelumnya.',
+                ], 422);
+            }
+        }
+
         DB::beginTransaction();
         try {
-            $alreadyBooked = Booking::where('schedule_id', $schedule->id)
-                ->whereIn('status', ['pending','confirmed'])
-                ->lockForUpdate()
-                ->exists();
+            foreach ($schedules as $schedule) {
+                $lockExists = ScheduleLock::where('tutor_schedule_id', $schedule->id)
+                    ->where('tanggal', $validated['tanggal'])
+                    ->where(function ($q) {
+                        $q->where('status', 'confirmed')
+                            ->orWhere(function ($q2) {
+                                $q2->where('status', 'locked')
+                                    ->where('expired_at', '>', now());
+                            });
+                    })
+                    ->exists();
 
-            if ($alreadyBooked) {
-                DB::rollBack();
-                return response()->json(['message' => 'Slot jadwal sudah dipesan orang lain.'], 409);
+                if ($lockExists) {
+                    DB::rollBack();
+
+                    $jamDisplay = $schedule->jam_start instanceof Carbon
+                        ? $schedule->jam_start->format('H:i')
+                        : $schedule->jam_start;
+
+                    return response()->json([
+                        'message' => 'Slot jam '.$jamDisplay.' pada tanggal tersebut sudah dipesan.',
+                    ], 409);
+                }
             }
 
-            $totalPrice = $tutor->hourly_rate * $request->durasi;
+            $totalPayment = $tutor->hourly_rate * $schedules->count();
 
-            $booking = Booking::create([
-                'user_id'          => Auth::id(),
-                'tutor_profile_id' => $tutor->id,
-                'schedule_id'      => $schedule->id,
-                'mata_pelajaran_id'=> $tutor->mataPelajaran->first()?->id,
-                'scheduled_day'    => $schedule->hari,
-                'scheduled_time'   => $schedule->jam_mulai,
-                'duration'         => $request->durasi,
-                'total_price'      => $totalPrice,
-                'catatan'          => $request->catatan,
-                'status'           => 'pending',
-                'payment_status'   => 'unpaid',
+            $order = Order::create([
+                'tutor_id' => $tutor->id,
+                'student_id' => $student->id,
+                'status' => 'pending',
+                'catatan' => $validated['catatan'],
+                'total_payment' => $totalPayment,
+                'expired_at' => now()->addHours(24),
             ]);
+
+            foreach ($schedules as $schedule) {
+                $jamStart = $schedule->jam_start instanceof Carbon
+                    ? $schedule->jam_start->format('H:i')
+                    : $schedule->jam_start;
+                $jamEnd = $schedule->jam_end instanceof Carbon
+                    ? $schedule->jam_end->format('H:i')
+                    : $schedule->jam_end;
+
+                $orderDetail = OrderDetail::create([
+                    'order_id' => $order->id,
+                    'tutor_schedule_id' => $schedule->id,
+                    'tanggal' => $validated['tanggal'],
+                    'jam_start' => $jamStart,
+                    'jam_end' => $jamEnd,
+                    'harga' => $tutor->hourly_rate,
+                    'status' => 'pending',
+                ]);
+
+                ScheduleLock::create([
+                    'tutor_schedule_id' => $schedule->id,
+                    'order_detail_id' => $orderDetail->id,
+                    'tanggal' => $validated['tanggal'],
+                    'status' => 'locked',
+                    'locked_at' => now(),
+                    'expired_at' => now()->addHours(24),
+                ]);
+            }
 
             DB::commit();
 
-            // Kirim email notifikasi ke tutor
-            // Mail::to($tutor->user->email)->queue(new NewBookingRequestMail($booking));
-
             return response()->json([
-                'message'    => 'Pemesanan berhasil dibuat. Menunggu konfirmasi tutor.',
-                'booking_id' => $booking->id,
-                'redirect'   => route('siswa.pemesanan'),
+                'message' => 'Pemesanan berhasil dibuat ('.$schedules->count().' jam). Menunggu konfirmasi tutor.',
+                'order_id' => $order->id,
+                'redirect' => route('siswa.pemesanan'),
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return response()->json(['message' => 'Terjadi kesalahan. Silakan coba lagi.'], 500);
         }
-    }
-
-    /**
-     * POST /api/booking/{booking}/terima  (tutor)
-     */
-    public function terima(Booking $booking)
-    {
-        $tutor = Auth::user()->tutorProfile;
-        abort_if($booking->tutor_profile_id !== $tutor->id, 403);
-        abort_if($booking->status !== 'pending', 422, 'Booking sudah tidak pending.');
-
-        $booking->update(['status' => 'confirmed']);
-
-        if ($booking->schedule_id) {
-            TutorSchedule::where('id', $booking->schedule_id)->update(['is_available' => false]);
-        }
-
-        return response()->json(['message' => 'Booking diterima.']);
-    }
-
-    /**
-     * POST /api/booking/{booking}/tolak  (tutor)
-     */
-    public function tolak(Request $request, Booking $booking)
-    {
-        $tutor = Auth::user()->tutorProfile;
-        abort_if($booking->tutor_profile_id !== $tutor->id, 403);
-        abort_if($booking->status !== 'pending', 422, 'Booking sudah tidak pending.');
-
-        $booking->update([
-            'status'       => 'cancelled',
-            'tolak_alasan' => $request->input('alasan'),
-        ]);
-
-        if ($booking->schedule_id) {
-            TutorSchedule::where('id', $booking->schedule_id)->update(['is_available' => true]);
-        }
-
-        return response()->json(['message' => 'Booking ditolak.']);
     }
 }

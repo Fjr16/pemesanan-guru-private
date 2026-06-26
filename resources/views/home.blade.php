@@ -43,16 +43,6 @@
 
                 <div class="tk-search-divider d-none d-sm-block"></div>
 
-                {{-- Pilih hari --}}
-                <select id="searchHari" name="hari"
-                        class="tk-search-select d-none d-sm-block"
-                        style="max-width:130px;" aria-label="Pilih hari">
-                    <option value="">Semua Hari</option>
-                    @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $hari)
-                        <option value="{{ $hari }}">{{ $hari }}</option>
-                    @endforeach
-                </select>
-
                 {{-- Tombol cari --}}
                 <button type="submit" class="tk-search-btn" id="searchBtn">
                     <i class="bi bi-search"></i>
@@ -202,7 +192,7 @@
         <div class="row g-4 justify-content-center">
             @php
                 $steps = [
-                    ['icon'=>'bi-search',           'num'=>'01', 'title'=>'Cari Tutor',        'desc'=>'Pilih mata pelajaran dan hari yang tersedia. Lihat profil, spesialisasi, dan ulasan tutor.'],
+                    ['icon'=>'bi-search',           'num'=>'01', 'title'=>'Cari Tutor',        'desc'=>'Pilih mata pelajaran yang tersedia. Lihat profil dan spesialisasi tutor.'],
                     ['icon'=>'bi-calendar-check',   'num'=>'02', 'title'=>'Pilih Jadwal',       'desc'=>'Klik slot jadwal kosong yang sesuai. Sistem akan memastikan tidak ada bentrok.'],
                     ['icon'=>'bi-patch-check',       'num'=>'03', 'title'=>'Konfirmasi Tutor',   'desc'=>'Tutor menerima notifikasi dan mengkonfirmasi kesediaan mengajar di jadwal tersebut.'],
                     ['icon'=>'bi-wallet2',           'num'=>'04', 'title'=>'Bayar & Mulai',      'desc'=>'Selesaikan pembayaran. Detail sesi dikirim via email & WhatsApp secara otomatis.'],
@@ -291,55 +281,6 @@
     </div>
 </section>
 
-
-{{-- ================================================================
-     TESTIMONIAL / ULASAN
-================================================================ --}}
-<section class="tk-section" style="background:var(--tk-surface);">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="tk-section-title mb-2">Apa Kata Mereka?</h2>
-            <p class="tk-section-sub">Ribuan siswa sudah belajar bersama TutorKu</p>
-        </div>
-
-        <div class="row g-4">
-            @php
-                $testimonials = [
-                    ['name'=>'Andi Saputra', 'school'=>'Siswa SMA', 'text'=>'Nilai matematika saya naik drastis setelah belajar dengan tutor dari TutorKu. Proses bookingnya sangat mudah!', 'rating'=>5],
-                    ['name'=>'Dina Putri', 'school'=>'Siswa SMP', 'text'=>'Tutornya sabar dan menjelaskan dengan cara yang mudah dipahami. Jadwalnya juga fleksibel sesuai aktivitas saya.', 'rating'=>5],
-                    ['name'=>'Farid Maulana', 'school'=>'Mahasiswa', 'text'=>'Sangat membantu persiapan ujian. Saya bisa pilih tutor sesuai budget dan langsung konfirmasi lewat WhatsApp.', 'rating'=>5],
-                ];
-            @endphp
-
-            @foreach($testimonials as $t)
-                <div class="col-md-4">
-                    <div class="tk-card h-100">
-                        <div class="tk-card-body">
-                            <div class="tk-stars mb-3">
-                                @for($i = 0; $i < $t['rating']; $i++)
-                                    <i class="bi bi-star-fill"></i>
-                                @endfor
-                            </div>
-                            <p class="text-muted mb-4" style="font-size:.9rem;line-height:1.6;">
-                                "{{ $t['text'] }}"
-                            </p>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="tk-tutor-avatar" style="width:36px;height:36px;font-size:.8rem;">
-                                    {{ strtoupper(substr($t['name'], 0, 2)) }}
-                                </div>
-                                <div>
-                                    <div style="font-size:.875rem;font-weight:500;color:var(--tk-text);">{{ $t['name'] }}</div>
-                                    <div style="font-size:.75rem;color:var(--tk-text-muted);">{{ $t['school'] }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-
 @endsection
 
 
@@ -361,14 +302,12 @@ $(document).ready(function () {
 
         currentFilters = {
             mata_pelajaran_id: $('#searchMapel').val(),
-            hari: $('#searchHari').val(),
             sort: $('#sortSelect').val()
         };
 
         const mapelText = $('#searchMapel option:selected').text();
-        const hariText  = $('#searchHari option:selected').text();
 
-        updateResultsHeader(mapelText, hariText);
+        updateResultsHeader(mapelText);
         doSearch(currentFilters, 1, false);
 
         // Scroll ke hasil
@@ -392,7 +331,7 @@ $(document).ready(function () {
 
         currentFilters = { mata_pelajaran_id: id, sort: $('#sortSelect').val() };
         currentPage = 1;
-        updateResultsHeader(nama, '');
+        updateResultsHeader(nama);
         doSearch(currentFilters, 1, false);
 
         $('html, body').animate({ scrollTop: $('#tutorResults').offset().top - 80 }, 300);
@@ -473,21 +412,17 @@ $(document).ready(function () {
         });
     }
 
-    function updateResultsHeader(mapel, hari) {
+    function updateResultsHeader(mapel) {
         if (mapel && mapel !== 'Semua Mata Pelajaran') {
             $('#resultsTitle').text('Tutor ' + mapel);
         } else {
             $('#resultsTitle').text('Semua Tutor');
-        }
-        if (hari && hari !== 'Semua Hari') {
-            $('#resultsSubtitle').text('Tersedia hari ' + hari);
         }
     }
 
     function appendTutorCards(tutors, $row) {
         tutors.forEach(function (t) {
             const initials = t.name.split(' ').slice(0,2).map(w => w[0].toUpperCase()).join('');
-            const stars    = renderStars(t.rating || 0);
             const subjects = (t.subjects || []).map(s =>
                 `<span class="tk-badge-subject">${s}</span>`
             ).join('');
@@ -499,9 +434,7 @@ $(document).ready(function () {
                         <div class="tk-tutor-avatar">${initials}</div>
                         <div class="flex-1 min-w-0">
                             <div class="tk-tutor-name">${t.name}</div>
-                            <div class="d-flex align-items-center gap-1">${stars}
-                                <span class="text-muted ms-1" style="font-size:.75rem;">${t.rating_count || 0} ulasan</span>
-                            </div>
+                            <div style="font-size:.75rem;color:var(--tk-text-muted);">${t.session_count || 0} sesi selesai</div>
                         </div>
                     </div>
                     <div class="mb-2">${subjects}</div>
