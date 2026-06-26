@@ -13,14 +13,6 @@
             <p style="font-size:13px;color:#8890a8;margin:0;">Kelola informasi akun dan data pribadi Anda.</p>
         </div>
 
-        {{-- Flash messages --}}
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" style="border-radius:10px;font-size:13px;margin-bottom:14px;" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" style="font-size:10px;"></button>
-            </div>
-        @endif
-
         <div style="display:grid;grid-template-columns:240px 1fr;gap:14px;">
 
             {{-- ── Kiri: Avatar ───────────────────────────── --}}

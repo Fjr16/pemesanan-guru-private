@@ -29,8 +29,10 @@
                         'all'       => ['label' => 'Semua',         'count' => $counts['all']],
                         'pending'   => ['label' => 'Pending',       'count' => $counts['pending']],
                         'confirmed' => ['label' => 'Dikonfirmasi',  'count' => $counts['confirmed']],
-                        'completed' => ['label' => 'Selesai',       'count' => $counts['completed']],
-                        'cancelled' => ['label' => 'Dibatalkan',    'count' => $counts['cancelled']],
+                        'complete'  => ['label' => 'Selesai',       'count' => $counts['complete']],
+                        'canceled'  => ['label' => 'Dibatalkan',    'count' => $counts['canceled']],
+                        'rejected'  => ['label' => 'Ditolak',       'count' => $counts['rejected']],
+                        'expired'   => ['label' => 'Kedaluwarsa',   'count' => $counts['expired']],
                     ];
                     $activeFilter = request('status', 'all');
                 @endphp
@@ -51,41 +53,47 @@
         {{-- Order List --}}
         <div style="display:flex;flex-direction:column;gap:12px;">
             @forelse($orders as $order)
+                @php
+                    $statusBg = match($order->status) {
+                        'pending' => '#fffbeb',
+                        'confirmed' => '#eff6ff',
+                        'complete' => '#f0fdf4',
+                        'canceled' => '#fef2f2',
+                        'rejected' => '#fef2f2',
+                        'expired' => '#f0f2f8',
+                        default => '#f0f2f8',
+                    };
+                    $statusClr = match($order->status) {
+                        'pending' => '#92400e',
+                        'confirmed' => '#1e40af',
+                        'complete' => '#15803d',
+                        'canceled' => '#dc2626',
+                        'rejected' => '#dc2626',
+                        'expired' => '#6b7280',
+                        default => '#4b5574',
+                    };
+                    $statusLbl = match($order->status) {
+                        'pending' => 'Menunggu Konfirmasi',
+                        'confirmed' => 'Dikonfirmasi',
+                        'complete' => 'Selesai',
+                        'canceled' => 'Dibatalkan',
+                        'rejected' => 'Ditolak',
+                        'expired' => 'Kedaluwarsa',
+                        default => ucfirst($order->status),
+                    };
+                @endphp
                 <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
                     <div style="display:flex;align-items:flex-start;gap:14px;">
 
                         {{-- Avatar --}}
                         <div style="width:48px;height:48px;border-radius:50%;background:#eef2ff;color:#3730a3;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0;">
-                            {{ strtoupper(substr($order['tutor_name'], 0, 2)) }}
+                            {{ strtoupper(substr($order->tutor->name ?? 'TK', 0, 2)) }}
                         </div>
 
                         {{-- Info --}}
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
-                                <h3 style="font-size:15px;font-weight:600;color:#1a1a2e;margin:0;">{{ $order['tutor_name'] }}</h3>
-                                @php
-                                    $statusBg = match($order['status']) {
-                                        'pending' => '#fffbeb',
-                                        'confirmed' => '#eff6ff',
-                                        'completed' => '#f0fdf4',
-                                        'cancelled' => '#fef2f2',
-                                        default => '#f0f2f8',
-                                    };
-                                    $statusClr = match($order['status']) {
-                                        'pending' => '#92400e',
-                                        'confirmed' => '#1e40af',
-                                        'completed' => '#15803d',
-                                        'cancelled' => '#dc2626',
-                                        default => '#4b5574',
-                                    };
-                                    $statusLbl = match($order['status']) {
-                                        'pending' => 'Menunggu Konfirmasi',
-                                        'confirmed' => 'Dikonfirmasi',
-                                        'completed' => 'Selesai',
-                                        'cancelled' => 'Dibatalkan',
-                                        default => ucfirst($order['status']),
-                                    };
-                                @endphp
+                                <h3 style="font-size:15px;font-weight:600;color:#1a1a2e;margin:0;">{{ $order->tutor->name ?? '-' }}</h3>
                                 <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;background:{{ $statusBg }};color:{{ $statusClr }};">
                                     {{ $statusLbl }}
                                 </span>
@@ -93,52 +101,53 @@
 
                             <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:10px;">
                                 <span style="font-size:12px;color:#8890a8;display:inline-flex;align-items:center;gap:4px;">
-                                    <i class="bi bi-book"></i> {{ $order['mapel'] }}
+                                    <i class="bi bi-calendar3"></i> {{ $order->day_name ?? '-' }}, {{ $order->tanggal ?? '-' }}
                                 </span>
                                 <span style="font-size:12px;color:#8890a8;display:inline-flex;align-items:center;gap:4px;">
-                                    <i class="bi bi-calendar3"></i> {{ $order['hari'] }}, {{ $order['jam'] }} WIB
+                                    <i class="bi bi-clock"></i> {{ $order->jam_range ?? '-' }}
                                 </span>
                                 <span style="font-size:12px;color:#8890a8;display:inline-flex;align-items:center;gap:4px;">
-                                    <i class="bi bi-clock"></i> {{ $order['durasi'] }} jam
+                                    <i class="bi bi-hourglass-split"></i> {{ $order->jumlah_jam }} jam
                                 </span>
                             </div>
 
                             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
                                 <div>
                                     <span style="font-size:15px;font-weight:700;color:#1e2d6b;">
-                                        Rp {{ number_format($order['total'], 0, ',', '.') }}
+                                        Rp {{ number_format($order->total_payment, 0, ',', '.') }}
                                     </span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:8px;">
-                                    @if($order['status'] === 'pending')
-                                        <form method="POST" action="{{ route('siswa.pemesanan.cancel', $order['id']) }}" style="display:inline;" onsubmit="return confirm('Batalkan pemesanan ini?');">
+                                    @if($order->status === 'pending')
+                                        <form id="cancel-form-{{ $order->id }}" method="POST" action="{{ route('siswa.pemesanan.cancel', $order->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit"
-                                                style="border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
-                                                <i class="bi bi-x-circle"></i> Batalkan
-                                            </button>
                                         </form>
+                                        <button type="button"
+                                            onclick="confirmCancel({{ $order->id }})"
+                                            style="border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                                            <i class="bi bi-x-circle"></i> Batalkan
+                                        </button>
                                     @endif
 
-                                    @if($order['status'] === 'confirmed')
-                                        <a href="{{ route('siswa.pembayaran.show', $order['id']) }}"
+                                    @if($order->status === 'confirmed')
+                                        <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
                                            style="background:#1e2d6b;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                                             <i class="bi bi-wallet2"></i> Bayar
                                         </a>
                                     @endif
 
-                                    <a href="{{ route('siswa.pemesanan.show', $order['id']) }}"
+                                    <a href="{{ route('siswa.pemesanan.show', $order->id) }}"
                                        style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;font-size:12px;color:#8890a8;text-decoration:none;font-weight:500;">
                                         Detail <i class="bi bi-chevron-right" style="font-size:10px;"></i>
                                     </a>
                                 </div>
                             </div>
 
-                            @if(!empty($order['catatan']))
+                            @if($order->catatan)
                                 <div style="margin-top:10px;padding:8px 12px;border-radius:8px;background:#f8f9fc;font-size:12px;color:#4b5574;line-height:1.5;">
                                     <i class="bi bi-chat-square-text" style="margin-right:4px;color:#8890a8;"></i>
-                                    <em>{{ $order['catatan'] }}</em>
+                                    <em>{{ $order->catatan }}</em>
                                 </div>
                             @endif
                         </div>
@@ -167,3 +176,24 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+function confirmCancel(orderId) {
+    Swal.fire({
+        title: 'Batalkan Pemesanan?',
+        text: 'Pemesanan yang dibatalkan tidak dapat dikembalikan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tidak',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('cancel-form-' + orderId).submit();
+        }
+    });
+}
+</script>
+@endpush

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -46,14 +47,15 @@ class ProfileController extends Controller
             'no_hp'    => $request->no_hp,
         ]);
 
-        if ($student) {
-            $student->update([
+        $user->student()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
                 'name'         => $request->name,
                 'tempat_lhr'   => $request->tempat_lhr,
                 'tanggal_lhr'  => $request->tanggal_lhr,
                 'alamat'       => $request->alamat,
-            ]);
-        }
+            ]
+        );
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }

@@ -401,6 +401,49 @@
                 </div>
             </div>
 
+            {{-- MODAL BOOKING BERHASIL --}}
+            <div class="modal fade" id="bookingSuccessModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+                    <div class="modal-content" style="border:none;border-radius:var(--tk-radius-xl);box-shadow:0 8px 32px rgba(30,45,107,.12);">
+                        <div class="modal-body text-center" style="padding:2rem;">
+                            <div style="width:64px;height:64px;border-radius:50%;background:var(--tk-success-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                                <i class="bi bi-check-circle-fill" style="font-size:2rem;color:var(--tk-success-text);"></i>
+                            </div>
+                            <h5 style="font-size:1.125rem;font-weight:600;color:var(--tk-text);margin-bottom:.5rem;">Pemesanan Berhasil!</h5>
+                            <p style="font-size:.875rem;color:var(--tk-text-muted);margin-bottom:.25rem;">
+                                Pesanan Anda sedang menunggu konfirmasi dari tutor.
+                            </p>
+                            <p style="font-size:.8125rem;color:var(--tk-text-muted);margin-bottom:1.5rem;">
+                                Silakan tunggu maksimal <strong>24 jam</strong> untuk tutor merespons. Anda akan mendapat notifikasi via email.
+                            </p>
+                            <div id="bookingSuccessDetail" style="background:var(--tk-surface);border-radius:var(--tk-radius-lg);padding:.875rem 1rem;margin-bottom:1.25rem;text-align:left;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.8125rem;color:var(--tk-text-muted);">Order ID</span>
+                                    <span id="successOrderId" style="font-size:.8125rem;font-weight:500;">-</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span style="font-size:.8125rem;color:var(--tk-text-muted);">Jumlah Jam</span>
+                                    <span id="successJamCount" style="font-size:.8125rem;font-weight:500;">-</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span style="font-size:.8125rem;color:var(--tk-text-muted);">Total</span>
+                                    <span id="successTotal" style="font-size:.8125rem;font-weight:600;color:var(--tk-primary-dark);">-</span>
+                                </div>
+                            </div>
+                            <a id="btnLihatPesanan" href="{{ route('siswa.pemesanan') }}"
+                               class="tk-btn-primary d-flex align-items-center justify-content-center gap-2"
+                               style="width:100%;margin-bottom:.75rem;">
+                                <i class="bi bi-receipt"></i> Lihat Pesanan
+                            </a>
+                            <a href="{{ route('home') }}" style="font-size:.8125rem;color:var(--tk-text-muted);text-decoration:none;">
+                                <i class="bi bi-arrow-left me-1"></i>Kembali ke Beranda
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </div>{{-- /col-lg-8 --}}
 
 
@@ -701,14 +744,17 @@ function submitBooking() {
             'schedule_ids[]': scheduleIds,
             tanggal: selectedTanggal,
             catatan: $('#catatanInput').val(),
-            _token: $('meta[name="csrf-token"]').attr('content'),
+            _token: "{{ csrf_token() }}",
         },
         traditional: true,
         success: function (res) {
-            showToast(res.message || 'Pemesanan berhasil!', 'success');
-            setTimeout(() => {
-                window.location.href = res.redirect || '/siswa/pemesanan';
-            }, 1500);
+            const total = HOURLY_RATE * selectedSlots.length;
+            $('#successOrderId').text('#' + (res.order_id || '-'));
+            $('#successJamCount').text(selectedSlots.length + ' jam');
+            $('#successTotal').text('Rp ' + total.toLocaleString('id-ID'));
+            clearSelection();
+            var modal = new bootstrap.Modal(document.getElementById('bookingSuccessModal'));
+            modal.show();
         },
         error: function (xhr) {
             const msg = xhr.responseJSON?.message || 'Gagal melakukan pemesanan.';

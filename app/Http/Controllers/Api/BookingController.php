@@ -25,13 +25,13 @@ class BookingController extends Controller
 
         $student = $user->student;
         if (! $student) {
-            return response()->json(['message' => 'Data siswa tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Data siswa tidak ditemukan, mohon lengkapi profil anda'], 404);
         }
 
         $validated = $request->validate([
             'schedule_ids' => ['required', 'array', 'min:1'],
             'schedule_ids.*' => ['required', 'integer', 'exists:tutor_schedules,id'],
-            'tanggal' => ['required', 'date', 'after_or_equal:today'],
+            'tanggal' => ['required', 'date', 'after:today'],
             'catatan' => ['nullable', 'string', 'max:300'],
         ]);
 
@@ -69,22 +69,6 @@ class BookingController extends Controller
             return response()->json([
                 'message' => 'Semua slot harus di hari yang sama dengan tanggal yang dipilih ('.$dayName.').',
             ], 422);
-        }
-
-        $sortedSlots = $schedules->sortBy('jam_start')->values();
-        for ($i = 1; $i < $sortedSlots->count(); $i++) {
-            $prevEnd = $sortedSlots[$i - 1]->jam_end instanceof Carbon
-                ? $sortedSlots[$i - 1]->jam_end->format('H:i')
-                : $sortedSlots[$i - 1]->jam_end;
-            $currStart = $sortedSlots[$i]->jam_start instanceof Carbon
-                ? $sortedSlots[$i]->jam_start->format('H:i')
-                : $sortedSlots[$i]->jam_start;
-
-            if ($prevEnd !== $currStart) {
-                return response()->json([
-                    'message' => 'Slot harus berurutan. Slot ke-'.($i + 1).' tidak berdampingan dengan slot sebelumnya.',
-                ], 422);
-            }
         }
 
         DB::beginTransaction();

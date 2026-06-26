@@ -265,11 +265,12 @@
                                     style="width:28px;height:28px;border-radius:6px;border:1px solid #e8eaf0;background:#fff;color:#4b5574;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Edit">
                                 <i class="bi bi-pencil" style="font-size:12px;"></i>
                             </button>
-                            <form method="POST" action="{{ route('tutor.profil.subject.destroy', $ts) }}" onsubmit="return confirm('Hapus mata pelajaran ini?')">
+                            <form id="del-subject-{{ $ts->id }}" method="POST" action="{{ route('tutor.profil.subject.destroy', $ts) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
-                                    <i class="bi bi-trash" style="font-size:12px;"></i>
+                            </form>
+                            <button type="button" onclick="confirmDelete('del-subject-{{ $ts->id }}', 'Hapus mata pelajaran ini?')" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
+                                <i class="bi bi-trash" style="font-size:12px;"></i>
                                 </button>
                             </form>
                         </div>
@@ -363,11 +364,12 @@
                                     style="width:28px;height:28px;border-radius:6px;border:1px solid #e8eaf0;background:#fff;color:#4b5574;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Edit">
                                 <i class="bi bi-pencil" style="font-size:12px;"></i>
                             </button>
-                            <form method="POST" action="{{ route('tutor.profil.experience.destroy', $exp) }}" onsubmit="return confirm('Hapus pengalaman ini?')">
+                            <form id="del-exp-{{ $exp->id }}" method="POST" action="{{ route('tutor.profil.experience.destroy', $exp) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
-                                    <i class="bi bi-trash" style="font-size:12px;"></i>
+                            </form>
+                            <button type="button" onclick="confirmDelete('del-exp-{{ $exp->id }}', 'Hapus pengalaman ini?')" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
+                                <i class="bi bi-trash" style="font-size:12px;"></i>
                                 </button>
                             </form>
                         </div>
@@ -477,11 +479,12 @@
                                     style="width:28px;height:28px;border-radius:6px;border:1px solid #e8eaf0;background:#fff;color:#4b5574;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Edit">
                                 <i class="bi bi-pencil" style="font-size:12px;"></i>
                             </button>
-                            <form method="POST" action="{{ route('tutor.profil.education.destroy', $edu) }}" onsubmit="return confirm('Hapus riwayat pendidikan ini?')">
+                            <form id="del-edu-{{ $edu->id }}" method="POST" action="{{ route('tutor.profil.education.destroy', $edu) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
-                                    <i class="bi bi-trash" style="font-size:12px;"></i>
+                            </form>
+                            <button type="button" onclick="confirmDelete('del-edu-{{ $edu->id }}', 'Hapus riwayat pendidikan ini?')" style="width:28px;height:28px;border-radius:6px;border:1px solid #fee2e2;background:#fff;color:#ef4444;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Hapus">
+                                <i class="bi bi-trash" style="font-size:12px;"></i>
                                 </button>
                             </form>
                         </div>
@@ -575,3 +578,24 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+function confirmDelete(formId, message) {
+    Swal.fire({
+        title: 'Konfirmasi Hapus',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    });
+}
+</script>
+@endpush

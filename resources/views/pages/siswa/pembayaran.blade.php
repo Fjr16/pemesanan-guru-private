@@ -320,7 +320,7 @@ $(document).ready(function () {
     function handleFile(file) {
         const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-            alert('Ukuran file maksimal 5MB.');
+            Swal.fire({ icon: 'error', title: 'File Terlalu Besar', text: 'Ukuran file maksimal 5MB.' });
             return;
         }
         selectedFile = file;
@@ -340,7 +340,7 @@ $(document).ready(function () {
     // ── Submit pembayaran ────────────────────────────────────
     $('#submitPayment').on('click', function () {
         if (!selectedFile) {
-            alert('Upload bukti pembayaran terlebih dahulu.');
+            Swal.fire({ icon: 'warning', title: 'Belum Ada File', text: 'Upload bukti pembayaran terlebih dahulu.' });
             return;
         }
 
@@ -363,7 +363,7 @@ $(document).ready(function () {
                 window.location.href = res.redirect || `/siswa/pemesanan/${BOOKING_ID}/sukses`;
             },
             error: function (xhr) {
-                alert(xhr.responseJSON?.message || 'Gagal mengirim bukti pembayaran.');
+                Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Gagal mengirim bukti pembayaran.' });
                 $btn.prop('disabled', false)
                     .html('<i class="bi bi-send-check"></i> Konfirmasi Pembayaran');
             }
