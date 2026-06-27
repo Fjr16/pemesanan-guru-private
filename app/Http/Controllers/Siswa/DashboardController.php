@@ -25,15 +25,25 @@ class DashboardController extends Controller
 
         $stats = [
             'total_booking' => Order::where('student_id', $student->id)->count(),
-            'pending'       => Order::where('student_id', $student->id)->where('status', 'pending')->count(),
-            'completed'     => Order::where('student_id', $student->id)->where('status', 'complete')->count(),
-            'cancelled'     => Order::where('student_id', $student->id)->where('status', 'canceled')->count(),
+            'pending'       => Order::where('student_id', $student->id)->whereEffectiveStatus('pending')->count(),
+            'completed'     => Order::where('student_id', $student->id)->whereEffectiveStatus('complete')->count(),
+            'cancelled'     => Order::where('student_id', $student->id)->whereEffectiveStatus('canceled')->count(),
         ];
 
         $pendingCount = $stats['pending'];
 
         $upcomingSessions = Order::where('student_id', $student->id)
             ->whereIn('status', ['pending', 'confirmed'])
+            ->where(function ($q) {
+                $q->where('status', 'confirmed')
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'pending')
+                            ->where(function ($q3) {
+                                $q3->whereNull('expired_at')
+                                    ->orWhere('expired_at', '>=', now());
+                            });
+                    });
+            })
             ->with(['tutor.user', 'tutor.tutorSubjects.subjectCategory', 'orderDetails'])
             ->latest()
             ->limit(5)
@@ -45,7 +55,7 @@ class DashboardController extends Controller
                     'mapel'      => $o->tutor->tutorSubjects->first()->subjectCategory->name ?? '-',
                     'hari'       => $detail ? Carbon::parse($detail->tanggal)->translatedFormat('l') : '-',
                     'jam'        => $detail ? $detail->jam_start : '-',
-                    'status'     => $o->status,
+                    'status'     => $o->effective_status,
                 ];
             })
             ->toArray();

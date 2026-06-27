@@ -28,18 +28,18 @@ class PemesananController extends Controller
             ->latest();
 
         $counts = [
-            'all' => (clone $baseQuery)->count(),
-            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
-            'confirmed' => (clone $baseQuery)->where('status', 'confirmed')->count(),
-            'complete' => (clone $baseQuery)->where('status', 'complete')->count(),
-            'canceled' => (clone $baseQuery)->where('status', 'canceled')->count(),
-            'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
-            'expired' => (clone $baseQuery)->where('status', 'expired')->count(),
+            'all'       => (clone $baseQuery)->count(),
+            'pending'   => (clone $baseQuery)->whereEffectiveStatus('pending')->count(),
+            'confirmed' => (clone $baseQuery)->whereEffectiveStatus('confirmed')->count(),
+            'complete'  => (clone $baseQuery)->whereEffectiveStatus('complete')->count(),
+            'canceled'  => (clone $baseQuery)->whereEffectiveStatus('canceled')->count(),
+            'rejected'  => (clone $baseQuery)->whereEffectiveStatus('rejected')->count(),
+            'expired'   => (clone $baseQuery)->whereEffectiveStatus('expired')->count(),
         ];
 
         $orders = $status === 'all'
             ? $baseQuery->get()
-            : $baseQuery->where('status', $status)->get();
+            : $baseQuery->whereEffectiveStatus($status)->get();
 
         return view('pages.siswa.pemesanan', compact('orders', 'counts'));
     }

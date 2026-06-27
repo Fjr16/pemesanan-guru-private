@@ -26,9 +26,9 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->copy()->startOfMonth();
 
         $stats = [
-            'pending'       => Order::where('tutor_id', $tutor->id)->where('status', 'pending')->count(),
-            'confirmed'     => Order::where('tutor_id', $tutor->id)->where('status', 'confirmed')->count(),
-            'completed'     => Order::where('tutor_id', $tutor->id)->where('status', 'complete')->count(),
+            'pending'       => Order::where('tutor_id', $tutor->id)->whereEffectiveStatus('pending')->count(),
+            'confirmed'     => Order::where('tutor_id', $tutor->id)->whereEffectiveStatus('confirmed')->count(),
+            'completed'     => Order::where('tutor_id', $tutor->id)->whereEffectiveStatus('complete')->count(),
             'avg_rating'    => 0,
             'total_reviews' => 0,
             'pendapatan'    => Payment::where('status', 'paid')
@@ -40,7 +40,7 @@ class DashboardController extends Controller
         $pendingCount = $stats['pending'];
 
         $pendingBookings = Order::where('tutor_id', $tutor->id)
-            ->where('status', 'pending')
+            ->whereEffectiveStatus('pending')
             ->with(['student.user', 'orderDetails'])
             ->latest()
             ->limit(5)
@@ -60,7 +60,7 @@ class DashboardController extends Controller
             });
 
         $todaySessions = Order::where('tutor_id', $tutor->id)
-            ->where('status', 'confirmed')
+            ->whereEffectiveStatus('confirmed')
             ->whereHas('orderDetails', fn($q) => $q->where('tanggal', Carbon::today()->toDateString()))
             ->with(['student.user', 'orderDetails'])
             ->get()

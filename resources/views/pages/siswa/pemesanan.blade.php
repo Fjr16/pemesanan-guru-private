@@ -54,7 +54,7 @@
         <div style="display:flex;flex-direction:column;gap:12px;">
             @forelse($orders as $order)
                 @php
-                    $statusBg = match($order->status) {
+                    $statusBg = match($order->effective_status) {
                         'pending' => '#fffbeb',
                         'confirmed' => '#eff6ff',
                         'complete' => '#f0fdf4',
@@ -63,7 +63,7 @@
                         'expired' => '#f0f2f8',
                         default => '#f0f2f8',
                     };
-                    $statusClr = match($order->status) {
+                    $statusClr = match($order->effective_status) {
                         'pending' => '#92400e',
                         'confirmed' => '#1e40af',
                         'complete' => '#15803d',
@@ -72,14 +72,14 @@
                         'expired' => '#6b7280',
                         default => '#4b5574',
                     };
-                    $statusLbl = match($order->status) {
+                    $statusLbl = match($order->effective_status) {
                         'pending' => 'Menunggu Konfirmasi',
                         'confirmed' => 'Dikonfirmasi',
                         'complete' => 'Selesai',
                         'canceled' => 'Dibatalkan',
                         'rejected' => 'Ditolak',
                         'expired' => 'Kedaluwarsa',
-                        default => ucfirst($order->status),
+                        default => ucfirst($order->effective_status),
                     };
                 @endphp
                 <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
@@ -118,7 +118,7 @@
                                     </span>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:8px;">
-                                    @if($order->status === 'pending')
+                                    @if($order->effective_status === 'pending')
                                         <form id="cancel-form-{{ $order->id }}" method="POST" action="{{ route('siswa.pemesanan.cancel', $order->id) }}" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -130,7 +130,7 @@
                                         </button>
                                     @endif
 
-                                    @if($order->status === 'confirmed')
+                                    @if($order->effective_status === 'confirmed')
                                         <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
                                            style="background:#1e2d6b;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                                             <i class="bi bi-wallet2"></i> Bayar

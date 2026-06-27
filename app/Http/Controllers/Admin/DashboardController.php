@@ -31,7 +31,7 @@ class DashboardController extends Controller
             'tutor_pending'     => Tutor::where('status', 'pending')->count(),
             'total_booking'     => Order::count(),
             'booking_bulan_ini' => $bookingThisMonth,
-            'sesi_selesai'      => Order::where('status', 'complete')
+            'sesi_selesai'      => Order::whereEffectiveStatus('complete')
                 ->whereBetween('created_at', [$startOfMonth, $now])
                 ->count(),
             'total_transaksi'   => Payment::where('status', 'paid')->sum('amount'),
@@ -58,7 +58,7 @@ class DashboardController extends Controller
                 'id'           => $o->id,
                 'user'         => (object)['name' => $o->student->user->username ?? '-'],
                 'mataPelajaran'=> (object)['nama' => $o->tutor->tutorSubjects->first()->subjectCategory->name ?? '-'],
-                'status'       => $o->status,
+                'status'       => $o->effective_status,
                 'created_at'   => $o->created_at,
             ]);
 

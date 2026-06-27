@@ -3,12 +3,44 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    public function getEffectiveStatusAttribute(): string
+    {
+        if ($this->status === 'pending' && $this->expired_at?->isPast()) {
+            return 'expired';
+        }
+
+        return $this->status;
+    }
+
+    public function scopeWhereEffectiveStatus(Builder $query, string $status): Builder
+    {
+        if ($status === 'expired') {
+            return $query->where(function ($q) {
+                $q->where('status', 'expired')
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'pending')
+                            ->where('expired_at', '<', now());
+                    });
+            });
+        }
+
+        if ($status === 'pending') {
+            return $query->where('status', 'pending')
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')
+                        ->orWhere('expired_at', '>=', now());
+                });
+        }
+
+        return $query->where('status', $status);
+    }
     protected $fillable = [
         'tutor_id',
         'student_id',

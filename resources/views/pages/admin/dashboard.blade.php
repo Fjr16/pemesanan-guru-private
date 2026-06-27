@@ -139,7 +139,7 @@
                         <div style="font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $booking->user->name ?? '-' }}</div>
                         <div style="font-size:11px;color:#8890a8;">{{ $booking->mataPelajaran->nama ?? '-' }}</div>
                     </div>
-                    <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;{{ $booking->status === 'pending' ? 'background:#fffbeb;color:#92400e;' : ($booking->status === 'confirmed' ? 'background:#eff6ff;color:#1e40af;' : 'background:#f0fdf4;color:#15803d;') }}">
+                    <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;{{ $booking->status === 'pending' ? 'background:#fffbeb;color:#92400e;' : ($booking->status === 'confirmed' ? 'background:#eff6ff;color:#1e40af;' : ($booking->status === 'expired' ? 'background:#f0f2f8;color:#6b7280;' : 'background:#f0fdf4;color:#15803d;')) }}">
                         {{ ucfirst($booking->status ?? 'pending') }}
                     </span>
                 </div>

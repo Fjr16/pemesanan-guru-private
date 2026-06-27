@@ -19,7 +19,7 @@
         </nav>
 
         @php
-            $statusBg = match($order->status) {
+            $statusBg = match($order->effective_status) {
                 'pending' => '#fffbeb',
                 'confirmed' => '#eff6ff',
                 'complete' => '#f0fdf4',
@@ -28,7 +28,7 @@
                 'expired' => '#f0f2f8',
                 default => '#f0f2f8',
             };
-            $statusClr = match($order->status) {
+            $statusClr = match($order->effective_status) {
                 'pending' => '#92400e',
                 'confirmed' => '#1e40af',
                 'complete' => '#15803d',
@@ -37,7 +37,7 @@
                 'expired' => '#6b7280',
                 default => '#4b5574',
             };
-            $statusIcon = match($order->status) {
+            $statusIcon = match($order->effective_status) {
                 'pending' => 'bi-hourglass-split',
                 'confirmed' => 'bi-patch-check-fill',
                 'complete' => 'bi-check-circle-fill',
@@ -46,14 +46,14 @@
                 'expired' => 'bi-clock-history',
                 default => 'bi-circle',
             };
-            $statusLbl = match($order->status) {
+            $statusLbl = match($order->effective_status) {
                 'pending' => 'Menunggu Konfirmasi Tutor',
                 'confirmed' => 'Tutor Telah Mengkonfirmasi',
                 'complete' => 'Sesi Selesai',
                 'canceled' => 'Pemesanan Dibatalkan',
                 'rejected' => 'Pemesanan Ditolak Tutor',
                 'expired' => 'Pemesanan Kedaluwarsa',
-                default => ucfirst($order->status),
+                default => ucfirst($order->effective_status),
             };
         @endphp
 
@@ -127,17 +127,17 @@
                         <div>
                             <div style="font-size:14px;font-weight:600;color:{{ $statusClr }};">{{ $statusLbl }}</div>
                             <div style="font-size:12px;color:{{ $statusClr }};opacity:.7;margin-top:2px;">
-                                @if($order->status === 'pending')
+                                @if($order->effective_status === 'pending')
                                     Menunggu tutor mengkonfirmasi jadwal Anda.
-                                @elseif($order->status === 'confirmed')
+                                @elseif($order->effective_status === 'confirmed')
                                     Tutor telah mengkonfirmasi. Silakan lakukan pembayaran.
-                                @elseif($order->status === 'complete')
+                                @elseif($order->effective_status === 'complete')
                                     Sesi telah selesai. Terima kasih!
-                                @elseif($order->status === 'canceled')
+                                @elseif($order->effective_status === 'canceled')
                                     Pemesanan ini telah dibatalkan.
-                                @elseif($order->status === 'rejected')
+                                @elseif($order->effective_status === 'rejected')
                                     Tutor menolak pemesanan ini.
-                                @elseif($order->status === 'expired')
+                                @elseif($order->effective_status === 'expired')
                                     Pemesanan melewati batas waktu.
                                 @endif
                             </div>
@@ -184,14 +184,14 @@
                         <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Aksi</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        @if($order->status === 'confirmed')
+                        @if($order->effective_status === 'confirmed')
                             <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
                                style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:8px;background:#1e2d6b;color:#fff;font-size:13px;font-weight:500;text-decoration:none;">
                                 <i class="bi bi-wallet2"></i> Bayar Sekarang
                             </a>
                         @endif
 
-                        @if($order->status === 'pending')
+                        @if($order->effective_status === 'pending')
                             <form id="cancel-form" method="POST" action="{{ route('siswa.pemesanan.cancel', $order->id) }}">
                                 @csrf
                                 @method('DELETE')
@@ -219,13 +219,13 @@
                     @php
                         $steps = [
                             ['label' => 'Pemesanan dibuat', 'done' => true, 'icon' => 'bi-plus-circle-fill', 'color' => '#1e2d6b'],
-                            ['label' => 'Menunggu konfirmasi', 'done' => in_array($order->status, ['confirmed', 'complete']), 'icon' => 'bi-hourglass-split', 'color' => '#b45309', 'active' => $order->status === 'pending'],
-                            ['label' => 'Tutor mengkonfirmasi', 'done' => in_array($order->status, ['complete']), 'icon' => 'bi-patch-check-fill', 'color' => '#1e40af', 'active' => $order->status === 'confirmed'],
-                            ['label' => 'Sesi selesai', 'done' => $order->status === 'complete', 'icon' => 'bi-check-circle-fill', 'color' => '#15803d', 'active' => false],
+                            ['label' => 'Menunggu konfirmasi', 'done' => in_array($order->effective_status, ['confirmed', 'complete']), 'icon' => 'bi-hourglass-split', 'color' => '#b45309', 'active' => $order->effective_status === 'pending'],
+                            ['label' => 'Tutor mengkonfirmasi', 'done' => in_array($order->effective_status, ['complete']), 'icon' => 'bi-patch-check-fill', 'color' => '#1e40af', 'active' => $order->effective_status === 'confirmed'],
+                            ['label' => 'Sesi selesai', 'done' => $order->effective_status === 'complete', 'icon' => 'bi-check-circle-fill', 'color' => '#15803d', 'active' => false],
                         ];
 
-                        if (in_array($order->status, ['canceled', 'rejected', 'expired'])) {
-                            $steps[] = ['label' => ucfirst($order->status === 'canceled' ? 'Dibatalkan' : ($order->status === 'rejected' ? 'Ditolak' : 'Kedaluwarsa')), 'done' => true, 'icon' => 'bi-x-circle-fill', 'color' => '#dc2626'];
+                        if (in_array($order->effective_status, ['canceled', 'rejected', 'expired'])) {
+                            $steps[] = ['label' => ucfirst($order->effective_status === 'canceled' ? 'Dibatalkan' : ($order->effective_status === 'rejected' ? 'Ditolak' : 'Kedaluwarsa')), 'done' => true, 'icon' => 'bi-x-circle-fill', 'color' => '#dc2626'];
                         }
                     @endphp
                     @foreach($steps as $step)
