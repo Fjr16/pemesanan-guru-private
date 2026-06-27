@@ -101,7 +101,7 @@
                             {{ $tutor->mataPelajaran->pluck('nama')->join(', ') ?? '-' }}
                         </td>
                         <td style="padding:10px 8px;border-bottom:1px solid #f0f2f8;color:#8890a8;white-space:nowrap;">
-                            {{ $tutor->created_at?->format('d M Y') ?? '-' }}
+                            {{ $tutor->created_at?->translatedFormat('d F Y') ?? '-' }}
                         </td>
                         <td style="padding:10px 8px;border-bottom:1px solid #f0f2f8;">
                             <a href="{{ route('admin.tutor') }}" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:500;border:1px solid #d0d5e8;background:#fff;color:#1e2d6b;text-decoration:none;">

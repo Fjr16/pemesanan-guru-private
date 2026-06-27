@@ -165,7 +165,7 @@
                             @endif
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $booking->created_at ? $booking->created_at->format('d M Y') : '-' }}<br>
+                            {{ $booking->created_at ? $booking->created_at->translatedFormat('d F Y') : '-' }}<br>
                             <span style="font-size:11px;">{{ $booking->created_at ? $booking->created_at->format('H:i') : '' }}</span>
                         </td>
                     </tr>

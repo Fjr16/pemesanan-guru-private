@@ -150,6 +150,27 @@
                                     <em>{{ $order->catatan }}</em>
                                 </div>
                             @endif
+                            @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at)
+                                @php
+                                    $isUrgent = $order->expired_at->diffInHours(now()) < 4;
+                                @endphp
+                                <div style="margin-top:10px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:{{ $isUrgent ? '#fef2f2' : '#fffbeb' }};border:1px solid {{ $isUrgent ? '#fecaca' : '#fde68a' }};">
+                                    <i class="bi bi-alarm" style="font-size:14px;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></i>
+                                    <div style="flex:1;">
+                                        <span style="font-size:12px;font-weight:500;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};">
+                                            @if($order->effective_status === 'pending')
+                                                Menunggu konfirmasi tutor
+                                            @else
+                                                Segera lakukan pembayaran
+                                            @endif
+                                        </span>
+                                        <span style="font-size:11px;color:{{ $isUrgent ? '#b91c1c' : '#a16207' }};margin-left:4px;">
+                                            &middot; Batas: {{ $order->expired_at->translatedFormat('d M, H:i') }} WIB
+                                        </span>
+                                    </div>
+                                    <span class="countdown-timer" data-expired="{{ $order->expired_at->timestamp }}" style="font-size:12px;font-weight:600;font-family:monospace;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -179,6 +200,21 @@
 
 @push('scripts')
 <script>
+function updateCountdowns() {
+    document.querySelectorAll('.countdown-timer').forEach(function(el) {
+        var expired = parseInt(el.dataset.expired);
+        var now = Math.floor(Date.now() / 1000);
+        var diff = expired - now;
+        if (diff <= 0) { el.textContent = 'Kedaluwarsa'; return; }
+        var h = Math.floor(diff / 3600);
+        var m = Math.floor((diff % 3600) / 60);
+        var s = diff % 60;
+        el.textContent = (h > 0 ? h + 'j ' : '') + m + 'm ' + s + 'd';
+    });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+
 function confirmCancel(orderId) {
     Swal.fire({
         title: 'Batalkan Pemesanan?',

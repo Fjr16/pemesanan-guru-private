@@ -12,7 +12,7 @@ class Order extends Model
 {
     public function getEffectiveStatusAttribute(): string
     {
-        if ($this->status === 'pending' && $this->expired_at?->isPast()) {
+        if (in_array($this->status, ['pending', 'confirmed']) && $this->expired_at?->isPast()) {
             return 'expired';
         }
 
@@ -25,7 +25,7 @@ class Order extends Model
             return $query->where(function ($q) {
                 $q->where('status', 'expired')
                     ->orWhere(function ($q2) {
-                        $q2->where('status', 'pending')
+                        $q2->whereIn('status', ['pending', 'confirmed'])
                             ->where('expired_at', '<', now());
                     });
             });
@@ -39,8 +39,17 @@ class Order extends Model
                 });
         }
 
+        if ($status === 'confirmed') {
+            return $query->where('status', 'confirmed')
+                ->where(function ($q) {
+                    $q->whereNull('expired_at')
+                        ->orWhere('expired_at', '>=', now());
+                });
+        }
+
         return $query->where('status', $status);
     }
+
     protected $fillable = [
         'tutor_id',
         'student_id',
@@ -82,7 +91,7 @@ class Order extends Model
     {
         $first = $this->orderDetails->first();
 
-        return $first ? Carbon::parse($first->tanggal)->translatedFormat('d M Y') : null;
+        return $first ? Carbon::parse($first->tanggal)->translatedFormat('d F Y') : null;
     }
 
     public function getJamRangeAttribute(): ?string

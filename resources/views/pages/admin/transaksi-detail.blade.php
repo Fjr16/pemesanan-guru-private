@@ -83,7 +83,7 @@
                 <table style="width:100%;font-size:13px;border-collapse:collapse">
                     <thead>
                         <tr>
-                            @foreach(['Tanggal','Jam','Durasi','Harga','Status'] as $col)
+                            @foreach(['Tanggal','Jam','Durasi','Harga'] as $col)
                                 <th style="background:#f8f9fc;color:#8890a8;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:10px 16px;border-bottom:1px solid #e8eaf0;white-space:nowrap;">
                                     {{ $col }}
                                 </th>
@@ -104,11 +104,6 @@
                                 </td>
                                 <td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;white-space:nowrap;">
                                     Rp {{ number_format($detail->harga ?? 0, 0, ',', '.') }}
-                                </td>
-                                <td style="padding:10px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
-                                    <span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:12px;background:#f0fdf4;color:#15803d;">
-                                        {{ ucfirst($detail->status ?? 'pending') }}
-                                    </span>
                                 </td>
                             </tr>
                         @empty
@@ -197,7 +192,7 @@
                     </div>
                     <div>
                         <div style="font-size:13px;font-weight:500;color:{{ $item['time'] ? '#1a1a2e' : '#b0b8cc' }};">{{ $item['label'] }}</div>
-                        <div style="font-size:11px;color:#8890a8;">{{ $item['time'] ? $item['time']->format('d M Y H:i') : '-' }}</div>
+                        <div style="font-size:11px;color:#8890a8;">{{ $item['time'] ? $item['time']->translatedFormat('d F Y H:i') : '-' }}</div>
                     </div>
                 </div>
             @endforeach

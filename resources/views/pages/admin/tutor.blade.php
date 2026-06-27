@@ -144,7 +144,7 @@
                             @endif
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $tutor->created_at->format('d M Y') }}
+                            {{ $tutor->created_at->translatedFormat('d F Y') }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <div style="display:flex;gap:6px;">

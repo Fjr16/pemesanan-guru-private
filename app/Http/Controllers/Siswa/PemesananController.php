@@ -69,13 +69,14 @@ class PemesananController extends Controller
             ->where('status', 'pending')
             ->firstOrFail();
 
-        foreach ($order->orderDetails as $detail) {
-            ScheduleLock::where('order_detail_id', $detail->id)
-                ->whereIn('status', ['locked'])
-                ->update(['status' => 'release']);
-        }
+        $order->update([
+            'status' => 'canceled',
+            'expired_at' => null,
+        ]);
 
-        $order->update(['status' => 'canceled']);
+        ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
+            ->where('status', 'locked')
+            ->update(['status' => 'release', 'expired_at' => null]);
 
         return redirect()->route('siswa.pemesanan')->with('success', 'Pemesanan berhasil dibatalkan.');
     }

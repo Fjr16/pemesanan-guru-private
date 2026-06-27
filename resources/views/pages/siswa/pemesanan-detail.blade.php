@@ -138,7 +138,14 @@
                                 @elseif($order->effective_status === 'rejected')
                                     Tutor menolak pemesanan ini.
                                 @elseif($order->effective_status === 'expired')
-                                    Pemesanan melewati batas waktu.
+                                    Pesanan tidak diproses sebelum batas waktu habis.
+                                @endif
+                                @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at)
+                                    <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+                                        <i class="bi bi-alarm" style="font-size:14px;color:#92400e;"></i>
+                                        <span style="font-size:12px;color:#92400e;font-weight:500;">Batas waktu:</span>
+                                        <span class="countdown-detail" data-expired="{{ $order->expired_at->timestamp }}" style="font-size:13px;font-weight:700;font-family:monospace;color:#92400e;"></span>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -217,15 +224,26 @@
                         <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Timeline</span>
                     </div>
                     @php
+                        $st = $order->effective_status;
                         $steps = [
                             ['label' => 'Pemesanan dibuat', 'done' => true, 'icon' => 'bi-plus-circle-fill', 'color' => '#1e2d6b'],
-                            ['label' => 'Menunggu konfirmasi', 'done' => in_array($order->effective_status, ['confirmed', 'complete']), 'icon' => 'bi-hourglass-split', 'color' => '#b45309', 'active' => $order->effective_status === 'pending'],
-                            ['label' => 'Tutor mengkonfirmasi', 'done' => in_array($order->effective_status, ['complete']), 'icon' => 'bi-patch-check-fill', 'color' => '#1e40af', 'active' => $order->effective_status === 'confirmed'],
-                            ['label' => 'Sesi selesai', 'done' => $order->effective_status === 'complete', 'icon' => 'bi-check-circle-fill', 'color' => '#15803d', 'active' => false],
+                            ['label' => 'Menunggu konfirmasi tutor', 'done' => in_array($st, ['confirmed', 'complete']), 'icon' => 'bi-hourglass-split', 'color' => '#b45309', 'active' => $st === 'pending'],
                         ];
 
-                        if (in_array($order->effective_status, ['canceled', 'rejected', 'expired'])) {
-                            $steps[] = ['label' => ucfirst($order->effective_status === 'canceled' ? 'Dibatalkan' : ($order->effective_status === 'rejected' ? 'Ditolak' : 'Kedaluwarsa')), 'done' => true, 'icon' => 'bi-x-circle-fill', 'color' => '#dc2626'];
+                        if (in_array($st, ['confirmed', 'complete'])) {
+                            $steps[] = ['label' => 'Tutor mengkonfirmasi', 'done' => true, 'icon' => 'bi-patch-check-fill', 'color' => '#1e40af', 'active' => false];
+                            $steps[] = ['label' => 'Menunggu pembayaran', 'done' => $st === 'complete', 'icon' => 'bi-wallet2', 'color' => '#b45309', 'active' => $st === 'confirmed'];
+                        }
+
+                        $steps[] = ['label' => 'Sesi selesai', 'done' => $st === 'complete', 'icon' => 'bi-check-circle-fill', 'color' => '#15803d', 'active' => false];
+
+                        if (in_array($st, ['canceled', 'rejected', 'expired'])) {
+                            $label = match($st) {
+                                'canceled' => 'Dibatalkan',
+                                'rejected' => 'Ditolak tutor',
+                                'expired'  => 'Kedaluwarsa',
+                            };
+                            $steps[] = ['label' => $label, 'done' => true, 'icon' => 'bi-x-circle-fill', 'color' => '#dc2626'];
                         }
                     @endphp
                     @foreach($steps as $step)
@@ -257,6 +275,22 @@
 
 @push('scripts')
 <script>
+function updateCountdowns() {
+    document.querySelectorAll('.countdown-detail').forEach(function(el) {
+        var expired = parseInt(el.dataset.expired);
+        var now = Math.floor(Date.now() / 1000);
+        var diff = expired - now;
+        if (diff <= 0) { el.textContent = 'Kedaluwarsa'; el.style.color = '#dc2626'; return; }
+        var h = Math.floor(diff / 3600);
+        var m = Math.floor((diff % 3600) / 60);
+        var s = diff % 60;
+        el.textContent = (h > 0 ? h + 'j ' : '') + m + 'menit ' + s + 'detik';
+        if (diff < 14400) el.style.color = '#dc2626';
+    });
+}
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+
 function confirmCancel() {
     Swal.fire({
         title: 'Batalkan Pemesanan?',

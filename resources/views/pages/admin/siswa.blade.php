@@ -103,7 +103,7 @@
                             </span>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $siswa->created_at->format('d M Y') }}
+                            {{ $siswa->created_at->translatedFormat('d F Y') }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle">
                             <button type="button"

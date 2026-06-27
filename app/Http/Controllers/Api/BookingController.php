@@ -124,7 +124,6 @@ class BookingController extends Controller
                     'jam_start' => $jamStart,
                     'jam_end' => $jamEnd,
                     'harga' => $tutor->hourly_rate,
-                    'status' => 'pending',
                 ]);
 
                 ScheduleLock::create([
