@@ -432,9 +432,6 @@
         <a href="{{ route('admin.transaksi') }}" class="tk-nav-link {{ request()->routeIs('admin.transaksi*') ? 'active' : '' }}">
             <i class="bi bi-receipt"></i> Transaksi
         </a>
-        <a href="{{ route('admin.laporan') }}" class="tk-nav-link {{ request()->routeIs('admin.laporan') ? 'active' : '' }}">
-            <i class="bi bi-bar-chart-line"></i> Laporan
-        </a>
 
         <div class="tk-sidebar-footer">
             <form method="POST" action="{{ route('logout') }}">

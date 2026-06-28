@@ -493,7 +493,7 @@
                         <i class="bi bi-calendar-check"></i> Pesan Sesi
                     </a>
 
-                    <div class="mt-3 text-center">
+                    {{-- <div class="mt-3 text-center">
                         @if($tutor->user->no_hp)
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $tutor->user->no_hp) }}"
                                target="_blank"
@@ -502,7 +502,7 @@
                                 <i class="bi bi-whatsapp"></i> Chat via WhatsApp
                             </a>
                         @endif
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>

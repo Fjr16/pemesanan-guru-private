@@ -182,7 +182,7 @@
 {{-- ================================================================
      CARA KERJA
 ================================================================ --}}
-<section class="tk-section" style="background:var(--tk-surface);">
+<section class="tk-section" id="cara-kerja" style="background:var(--tk-surface);">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="tk-section-title mb-2">Cara Kerja TutorKu</h2>

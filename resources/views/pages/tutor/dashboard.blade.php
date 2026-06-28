@@ -175,7 +175,7 @@
                    style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);font-size:13px;font-weight:500;text-decoration:none;transition:background .15s;">
                     <i class="bi bi-inbox" style="color:#86efac;font-size:15px;"></i> Lihat pesanan masuk
                 </a>
-                <a href="#"
+                <a href="{{ route('tutor.profil') }}"
                    style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);font-size:13px;font-weight:500;text-decoration:none;transition:background .15s;">
                     <i class="bi bi-pencil-square" style="color:#86efac;font-size:15px;"></i> Update profil & tarif
                 </a>

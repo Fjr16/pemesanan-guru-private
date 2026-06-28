@@ -3,12 +3,6 @@
 @section('title', 'Transaksi — Admin TutorKu')
 @section('page-title', 'Rekap Transaksi')
 
-@section('topbar-actions')
-<a href="{{ route('admin.laporan') }}" class="tk-topbar-btn">
-    <i class="bi bi-file-earmark-excel"></i> Export
-</a>
-@endsection
-
 @section('content')
 
 {{-- ── Stat cards ───────────────────────────────────────────── --}}
@@ -66,7 +60,7 @@
             <label style="font-size:11px;font-weight:500;color:#8890a8;margin-bottom:4px;display:block;">Status</label>
             <select name="status" style="width:100%;height:34px;padding:0 10px;border:1px solid #e8eaf0;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
                 <option value="">Semua</option>
-                @foreach(['pending','confirmed','completed','cancelled'] as $s)
+                @foreach(['pending','confirmed','complete','canceled','rejected','expired'] as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
                 @endforeach
             </select>
@@ -110,38 +104,49 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($bookings as $booking)
-                    <tr style="transition:background .1s" onmouseover="this.style.background='#fafbff'" onmouseout="this.style.background=''">
+                @forelse($bookings as $order)
+                    @php
+                        $payment = $order->payments->last();
+                        $paymentStatus = $payment->status ?? 'unpaid';
+                    @endphp
+                    <tr style="transition:background .1s;cursor:pointer" onmouseover="this.style.background='#fafbff'" onmouseout="this.style.background=''" onclick="window.location='{{ route('admin.transaksi.show', $order->id) }}'">
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;font-family:monospace;font-size:12px;color:#8890a8;vertical-align:middle;">
-                            #{{ str_pad($booking->id, 5, '0', STR_PAD_LEFT) }}
+                            #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
-                            <div style="font-weight:500;font-size:13px;">{{ $booking->student->name ?? '-' }}</div>
-                            <div style="font-size:11px;color:#8890a8;">{{ $booking->student->email ?? '' }}</div>
+                            <div style="font-weight:500;font-size:13px;">{{ $order->student->name ?? '-' }}</div>
+                            <div style="font-size:11px;color:#8890a8;">{{ $order->student->user->email ?? '' }}</div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
-                            <div style="font-weight:500;font-size:13px;">{{ $booking->tutor->name ?? '-' }}</div>
+                            <div style="font-weight:500;font-size:13px;">{{ $order->tutor->name ?? '-' }}</div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;white-space:nowrap;">
-                            <div style="font-size:13px;">{{ $booking->scheduled_day ?? '-' }}</div>
-                            <div style="font-size:11px;color:#8890a8;">{{ $booking->scheduled_time ?? '' }} WIB</div>
+                            <div style="font-size:13px;">{{ $order->day_name ?? '-' }}</div>
+                            <div style="font-size:11px;color:#8890a8;">{{ $order->jam_range ?? '' }} WIB</div>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;white-space:nowrap;">
-                            <span style="font-weight:500;">Rp {{ number_format($booking->total_price ?? 0, 0, ',', '.') }}</span>
+                            <span style="font-weight:500;">Rp {{ number_format($order->total_payment, 0, ',', '.') }}</span>
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
-                            @php $st = $booking->status ?? 'pending'; @endphp
-                            @if($st === 'completed')
+                            @if($order->status === 'complete')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
-                                    <i class="bi bi-check-circle-fill" style="font-size:10px;"></i> Completed
+                                    <i class="bi bi-check-circle-fill" style="font-size:10px;"></i> Selesai
                                 </span>
-                            @elseif($st === 'confirmed')
+                            @elseif($order->status === 'confirmed')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1e40af;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
-                                    <i class="bi bi-check-lg" style="font-size:10px;"></i> Confirmed
+                                    <i class="bi bi-check-lg" style="font-size:10px;"></i> Dikonfirmasi
                                 </span>
-                            @elseif($st === 'cancelled')
+                            @elseif($order->status === 'canceled')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
-                                    <i class="bi bi-x-circle-fill" style="font-size:10px;"></i> Cancelled
+                                    <i class="bi bi-x-circle-fill" style="font-size:10px;"></i> Dibatalkan
+                                </span>
+                            @elseif($order->status === 'rejected')
+                                <span style="display:inline-flex;align-items:center;gap:4px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
+                                    <i class="bi bi-x-circle-fill" style="font-size:10px;"></i> Ditolak
+                                </span>
+                            @elseif($order->status === 'expired')
+                                <span style="display:inline-flex;align-items:center;gap:4px;background:#f0f2f8;color:#6b7280;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
+                                    <i class="bi bi-clock-history" style="font-size:10px;"></i> Kedaluwarsa
                                 </span>
                             @else
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fffbeb;color:#92400e;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
@@ -150,13 +155,13 @@
                             @endif
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;">
-                            @if(($booking->payment_status ?? '') === 'paid')
+                            @if($paymentStatus === 'paid')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
                                     <i class="bi bi-check-circle-fill" style="font-size:10px;"></i> Lunas
                                 </span>
-                            @elseif(($booking->payment_status ?? '') === 'pending_verification')
+                            @elseif($paymentStatus === 'pending')
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#fffbeb;color:#92400e;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
-                                    Verifikasi
+                                    Pending
                                 </span>
                             @else
                                 <span style="display:inline-flex;align-items:center;gap:4px;background:#f8f9fc;color:#8890a8;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;">
@@ -165,8 +170,8 @@
                             @endif
                         </td>
                         <td style="padding:12px 16px;border-bottom:1px solid #f0f2f8;vertical-align:middle;font-size:12px;color:#8890a8;white-space:nowrap;">
-                            {{ $booking->created_at ? $booking->created_at->translatedFormat('d F Y') : '-' }}<br>
-                            <span style="font-size:11px;">{{ $booking->created_at ? $booking->created_at->format('H:i') : '' }}</span>
+                            {{ $order->created_at->translatedFormat('d F Y') }}<br>
+                            <span style="font-size:11px;">{{ $order->created_at->format('H:i') }}</span>
                         </td>
                     </tr>
                 @empty
@@ -181,7 +186,7 @@
         </table>
     </div>
 
-    @if(isset($bookings) && $bookings->hasPages())
+    @if($bookings->hasPages())
         <div style="padding:14px 16px;border-top:1px solid #f0f2f8;display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:12px;color:#8890a8;">
                 Menampilkan {{ $bookings->firstItem() }}–{{ $bookings->lastItem() }} dari {{ $bookings->total() }} transaksi

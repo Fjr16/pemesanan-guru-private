@@ -16,6 +16,25 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     @stack('styles')
+
+    <style>
+        @media (max-width: 991.98px) {
+            .tk-navbar {
+                height: auto;
+            }
+            .navbar-collapse {
+                overflow: visible;
+            }
+            .navbar-collapse .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+                width: 100%;
+                margin-top: 8px;
+                border: 1px solid #e8eaf0;
+                box-shadow: 0 4px 16px rgba(0,0,0,.08);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -49,7 +68,10 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link tk-nav-link" href="#">Cara Kerja</a>
+                        <a class="nav-link tk-nav-link"
+                           href="{{ route('home') }}#cara-kerja">
+                            Cara Kerja
+                        </a>
                     </li>
                 </ul>
 
@@ -61,29 +83,14 @@
                     @endguest
 
                     @auth
-                        {{-- Notification bell --}}
-                        <div class="dropdown me-1">
-                            <button class="btn tk-btn-ghost position-relative" type="button"
-                                    id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger tk-notif-badge"
-                                      id="notifCount" style="display:none;">0</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end tk-dropdown" id="notifList"
-                                aria-labelledby="notifDropdown" style="min-width:280px;">
-                                <li><h6 class="dropdown-header">Notifikasi</h6></li>
-                                <li><p class="text-muted small px-3 py-2 mb-0" id="notifEmpty">Belum ada notifikasi.</p></li>
-                            </ul>
-                        </div>
-
                         {{-- User menu --}}
                         <div class="dropdown">
                             <button class="btn tk-user-btn d-flex align-items-center gap-2"
                                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="tk-avatar-sm">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    {{ strtoupper(substr(Auth::user()->username, 0, 2)) }}
                                 </div>
-                                <span class="d-none d-lg-inline text-white small">{{ Auth::user()->name }}</span>
+                                <span class="d-none d-lg-inline text-white small">{{ Auth::user()->username }}</span>
                                 <i class="bi bi-chevron-down text-white small"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end tk-dropdown">
@@ -197,14 +204,6 @@
                         <li class="mb-1"><a href="#" class="tk-footer-link">Cari Tutor</a></li>
                         <li class="mb-1"><a href="#" class="tk-footer-link">Cara Kerja</a></li>
                         <li class="mb-1"><a href="#" class="tk-footer-link">Daftar Tutor</a></li>
-                    </ul>
-                </div>
-                <div class="col-6 col-lg-2">
-                    <h6 class="text-white small fw-500 mb-3">Bantuan</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-1"><a href="#" class="tk-footer-link">FAQ</a></li>
-                        <li class="mb-1"><a href="#" class="tk-footer-link">Kontak</a></li>
-                        <li class="mb-1"><a href="#" class="tk-footer-link">Kebijakan Privasi</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4">

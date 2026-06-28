@@ -123,10 +123,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Transaksi
     Route::get('/transaksi',           [App\Http\Controllers\Admin\TransaksiController::class, 'index'])->name('transaksi');
     Route::get('/transaksi/{order}',   [App\Http\Controllers\Admin\TransaksiController::class, 'show'])->name('transaksi.show');
-
-    // Laporan
-    Route::get('/laporan', [App\Http\Controllers\Admin\LaporanController::class, 'index'])->name('laporan');
-
 });
 
 
