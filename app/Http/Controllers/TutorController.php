@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tutor;
-use Illuminate\Support\Carbon;
 
 class TutorController extends Controller
 {
@@ -31,8 +30,8 @@ class TutorController extends Controller
             return $slots->map(function ($s) {
                 return (object) [
                     'id' => $s->id,
-                    'jam_start' => $s->jam_start instanceof Carbon ? $s->jam_start->format('H:i') : $s->jam_start,
-                    'jam_end' => $s->jam_end instanceof Carbon ? $s->jam_end->format('H:i') : $s->jam_end,
+                    'jam_start' => $s->jam_start->format('H:i'),
+                    'jam_end' => $s->jam_end->format('H:i'),
                 ];
             });
         });

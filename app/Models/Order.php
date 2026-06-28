@@ -89,6 +89,10 @@ class Order extends Model
 
     public function getTanggalAttribute(): ?string
     {
+        if (! $this->relationLoaded('orderDetails')) {
+            $this->load('orderDetails');
+        }
+
         $first = $this->orderDetails->first();
 
         return $first ? Carbon::parse($first->tanggal)->translatedFormat('d F Y') : null;
@@ -96,6 +100,10 @@ class Order extends Model
 
     public function getJamRangeAttribute(): ?string
     {
+        if (! $this->relationLoaded('orderDetails')) {
+            $this->load('orderDetails');
+        }
+
         if ($this->orderDetails->isEmpty()) {
             return null;
         }
@@ -108,11 +116,19 @@ class Order extends Model
 
     public function getJumlahJamAttribute(): int
     {
+        if (! $this->relationLoaded('orderDetails')) {
+            $this->load('orderDetails');
+        }
+
         return $this->orderDetails->count();
     }
 
     public function getDayNameAttribute(): ?string
     {
+        if (! $this->relationLoaded('orderDetails')) {
+            $this->load('orderDetails');
+        }
+
         $first = $this->orderDetails->first();
 
         return $first ? Carbon::parse($first->tanggal)->translatedFormat('l') : null;

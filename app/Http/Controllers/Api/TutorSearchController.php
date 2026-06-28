@@ -92,8 +92,8 @@ class TutorSearchController extends Controller
 
                 return [
                     'id' => $s->id,
-                    'jam_mulai' => $s->jam_start instanceof Carbon ? $s->jam_start->format('H:i') : $s->jam_start,
-                    'jam_selesai' => $s->jam_end instanceof Carbon ? $s->jam_end->format('H:i') : $s->jam_end,
+                    'jam_mulai' => $s->jam_start->format('H:i'),
+                    'jam_selesai' => $s->jam_end->format('H:i'),
                     'is_booked' => $isBooked,
                 ];
             });

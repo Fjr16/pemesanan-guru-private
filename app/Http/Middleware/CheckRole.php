@@ -16,11 +16,6 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (! Auth::check()) {
-            return redirect()->route('login')
-                ->with('warning', 'Silakan login terlebih dahulu.');
-        }
-
         $user = Auth::user();
 
         if (empty($roles) || in_array($user->role, $roles, true)) {
@@ -29,11 +24,11 @@ class CheckRole
 
         return match($user->role) {
             'admin'  => redirect()->route('admin.dashboard')
-                            ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
+                ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
             'tutor'  => redirect()->route('tutor.dashboard')
-                            ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
+                ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
             default  => redirect()->route('siswa.dashboard')
-                            ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
+                ->with('error', 'Akses ditolak. Anda tidak memiliki izin.'),
         };
     }
 }

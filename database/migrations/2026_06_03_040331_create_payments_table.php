@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->nullable(false);
-            $table->string('transactionId')->nullable(true)->unique();
+            $table->string('transactionId', 50)->nullable(true)->unique(); // transaction order id for midtrans
             $table->string('payment_token')->nullable(true)->unique();
             $table->string('metode')->nullable(true);
             $table->decimal('amount')->nullable(true);

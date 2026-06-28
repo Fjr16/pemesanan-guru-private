@@ -88,9 +88,7 @@ class BookingController extends Controller
                 if ($lockExists) {
                     DB::rollBack();
 
-                    $jamDisplay = $schedule->jam_start instanceof Carbon
-                        ? $schedule->jam_start->format('H:i')
-                        : $schedule->jam_start;
+                    $jamDisplay = $schedule->jam_start->format('H:i');
 
                     return response()->json([
                         'message' => 'Slot jam '.$jamDisplay.' pada tanggal tersebut sudah dipesan.',
@@ -110,12 +108,8 @@ class BookingController extends Controller
             ]);
 
             foreach ($schedules as $schedule) {
-                $jamStart = $schedule->jam_start instanceof Carbon
-                    ? $schedule->jam_start->format('H:i')
-                    : $schedule->jam_start;
-                $jamEnd = $schedule->jam_end instanceof Carbon
-                    ? $schedule->jam_end->format('H:i')
-                    : $schedule->jam_end;
+                $jamStart = $schedule->jam_start->format('H:i');
+                $jamEnd = $schedule->jam_end->format('H:i');
 
                 $orderDetail = OrderDetail::create([
                     'order_id' => $order->id,

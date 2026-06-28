@@ -11,7 +11,15 @@ class Student extends Model
 {
     use SoftDeletes;
 
-    public function user(){
+    protected function casts(): array
+    {
+        return [
+            'tanggal_lhr' => 'date',
+        ];
+    }
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
     public function orders(){
