@@ -3,58 +3,67 @@
 namespace App\Http\Controllers\Siswa;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Services\MidtransService;
+use Illuminate\Http\JsonResponse;
 
 class PembayaranController extends Controller
 {
-    public function show($id)
+    public function show(Order $order, MidtransService $midtrans)
     {
-        $order = [
-            'id'            => (int) $id,
-            'tutor_name'    => 'Budi Santoso',
-            'tutor_email'   => 'budi@tutor.com',
-            'mapel'         => 'Matematika',
-            'hari'          => 'Senin',
-            'jam'           => '15:00',
-            'durasi'        => 2,
-            'tarif_per_jam' => 100000,
-            'total'         => 200000,
-            'status'        => 'confirmed',
-            'created_at'    => '20 Jun 2026',
-        ];
+        $student = auth()->user()->student;
 
-        return view('pages.siswa.pembayaran', compact('order'));
+        abort_unless($student && $order->student_id === $student->id, 403);
+        abort_unless(in_array($order->effective_status, ['confirmed', 'pending']), 403);
+
+        $payment = $order->payments()
+            ->where('status', 'pending')
+            ->first();
+
+        if (! $payment) {
+            $result = $midtrans->createTransaction($order);
+
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'transactionId' => $result['order_id'],
+                'payment_token' => $result['snap_token'],
+                'metode' => null,
+                'amount' => $order->total_payment,
+                'status' => 'pending',
+                'expired_at' => now()->addHours(24),
+            ]);
+        }
+
+        return view('pages.siswa.pembayaran', compact('order', 'payment'));
     }
 
-    public function process(Request $request, $id)
+    public function process(Order $order): JsonResponse
     {
-        $request->validate([
-            'payment_method' => ['required', 'in:transfer,ewallet,qris'],
-            'bukti_bayar'    => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-        ]);
+        $student = auth()->user()->student;
+
+        abort_unless($student && $order->student_id === $student->id, 403);
+
+        $payment = $order->payments()
+            ->where('status', 'pending')
+            ->firstOrFail();
 
         return response()->json([
-            'message'  => 'Bukti pembayaran berhasil diunggah.',
-            'redirect' => route('siswa.pembayaran.sukses', $id),
+            'snap_token' => $payment->payment_token,
         ]);
     }
 
-    public function success($id)
+    public function success(Order $order)
     {
-        $order = [
-            'id'            => (int) $id,
-            'tutor_name'    => 'Budi Santoso',
-            'tutor_email'   => 'budi@tutor.com',
-            'mapel'         => 'Matematika',
-            'hari'          => 'Senin',
-            'jam'           => '15:00',
-            'durasi'        => 2,
-            'tarif_per_jam' => 100000,
-            'total'         => 200000,
-            'status'        => 'confirmed',
-            'created_at'    => '20 Jun 2026',
-        ];
+        $student = auth()->user()->student;
 
-        return view('pages.siswa.pembayaran-sukses', compact('order'));
+        abort_unless($student && $order->student_id === $student->id, 403);
+
+        $payment = $order->payments()
+            ->whereIn('status', ['paid', 'pending'])
+            ->latest()
+            ->first();
+
+        return view('pages.siswa.pembayaran-sukses', compact('order', 'payment'));
     }
 }

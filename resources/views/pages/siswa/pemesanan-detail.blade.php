@@ -55,6 +55,12 @@
                 'expired' => 'Pemesanan Kedaluwarsa',
                 default => ucfirst($order->effective_status),
             };
+            if ($order->effective_status === 'confirmed' && $order->payments()->where('status', 'paid')->exists()) {
+                $statusBg = '#f0fdf4';
+                $statusClr = '#15803d';
+                $statusIcon = 'bi-wallet2';
+                $statusLbl = 'Pembayaran Diterima';
+            }
         @endphp
 
         <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start;">
@@ -130,7 +136,11 @@
                                 @if($order->effective_status === 'pending')
                                     Menunggu tutor mengkonfirmasi jadwal Anda.
                                 @elseif($order->effective_status === 'confirmed')
-                                    Tutor telah mengkonfirmasi. Silakan lakukan pembayaran.
+                                    @if($order->payments()->where('status', 'paid')->exists())
+                                        Pembayaran telah diterima. Sesi siap dimulai sesuai jadwal.
+                                    @else
+                                        Tutor telah mengkonfirmasi. Silakan lakukan pembayaran.
+                                    @endif
                                 @elseif($order->effective_status === 'complete')
                                     Sesi telah selesai. Terima kasih!
                                 @elseif($order->effective_status === 'canceled')
@@ -140,7 +150,7 @@
                                 @elseif($order->effective_status === 'expired')
                                     Pesanan tidak diproses sebelum batas waktu habis.
                                 @endif
-                                @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at)
+                                @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at && !$order->payments()->where('status', 'paid')->exists())
                                     <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
                                         <i class="bi bi-alarm" style="font-size:14px;color:#92400e;"></i>
                                         <span style="font-size:12px;color:#92400e;font-weight:500;">Batas waktu:</span>
@@ -191,11 +201,17 @@
                         <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Aksi</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        @if($order->effective_status === 'confirmed')
+                        @if($order->effective_status === 'confirmed' && !$order->payments()->where('status', 'paid')->exists())
                             <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
                                style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:8px;background:#1e2d6b;color:#fff;font-size:13px;font-weight:500;text-decoration:none;">
                                 <i class="bi bi-wallet2"></i> Bayar Sekarang
                             </a>
+                        @endif
+
+                        @if($order->effective_status === 'confirmed' && $order->payments()->where('status', 'paid')->exists())
+                            <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:8px;background:#f0fdf4;border:1px solid #86efac;color:#15803d;font-size:13px;font-weight:500;">
+                                <i class="bi bi-check-circle"></i> Sesi Siap Dimulai
+                            </div>
                         @endif
 
                         @if($order->effective_status === 'pending')
@@ -225,6 +241,7 @@
                     </div>
                     @php
                         $st = $order->effective_status;
+                        $isPaid = $order->payments()->where('status', 'paid')->exists();
                         $steps = [
                             ['label' => 'Pemesanan dibuat', 'done' => true, 'icon' => 'bi-plus-circle-fill', 'color' => '#1e2d6b'],
                             ['label' => 'Menunggu konfirmasi tutor', 'done' => in_array($st, ['confirmed', 'complete']), 'icon' => 'bi-hourglass-split', 'color' => '#b45309', 'active' => $st === 'pending'],
@@ -232,7 +249,7 @@
 
                         if (in_array($st, ['confirmed', 'complete'])) {
                             $steps[] = ['label' => 'Tutor mengkonfirmasi', 'done' => true, 'icon' => 'bi-patch-check-fill', 'color' => '#1e40af', 'active' => false];
-                            $steps[] = ['label' => 'Menunggu pembayaran', 'done' => $st === 'complete', 'icon' => 'bi-wallet2', 'color' => '#b45309', 'active' => $st === 'confirmed'];
+                            $steps[] = ['label' => $isPaid ? 'Pembayaran berhasil' : 'Menunggu pembayaran', 'done' => $isPaid, 'icon' => 'bi-wallet2', 'color' => $isPaid ? '#15803d' : '#b45309', 'active' => !$isPaid && $st === 'confirmed'];
                         }
 
                         $steps[] = ['label' => 'Sesi selesai', 'done' => $st === 'complete', 'icon' => 'bi-check-circle-fill', 'color' => '#15803d', 'active' => false];

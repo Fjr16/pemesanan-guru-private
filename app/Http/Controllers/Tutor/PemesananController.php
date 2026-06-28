@@ -113,6 +113,8 @@ class PemesananController extends Controller
             ->where('status', 'confirmed')
             ->firstOrFail();
 
+        abort_unless($order->payments()->where('status', 'paid')->exists(), 403, 'Pembayaran belum terverifikasi.');
+
         $order->update(['expired_at' => null]);
 
         ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))

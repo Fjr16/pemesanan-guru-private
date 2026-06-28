@@ -78,12 +78,12 @@ $(document).ready(function () {
     /* ============================================================
        6. FETCH NOTIFIKASI (untuk user yang sudah login)
     ============================================================ */
-    if ($('#notifDropdown').length) {
-        fetchNotifications();
+    // if ($('#notifDropdown').length) {
+    //     fetchNotifications();
 
-        // Refresh notifikasi setiap 60 detik
-        setInterval(fetchNotifications, 60000);
-    }
+    //     // Refresh notifikasi setiap 60 detik
+    //     setInterval(fetchNotifications, 60000);
+    // }
 
     /* ============================================================
        7. HOME — SEARCH FORM AJAX

@@ -81,6 +81,11 @@
                         'expired' => 'Kedaluwarsa',
                         default => ucfirst($order->effective_status),
                     };
+                    if ($order->effective_status === 'confirmed' && $order->payments()->where('status', 'paid')->exists()) {
+                        $statusBg = '#f0fdf4';
+                        $statusClr = '#15803d';
+                        $statusLbl = 'Sudah Dibayar';
+                    }
                 @endphp
                 <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
                     <div style="display:flex;align-items:flex-start;gap:14px;">
@@ -131,10 +136,16 @@
                                     @endif
 
                                     @if($order->effective_status === 'confirmed')
-                                        <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
-                                           style="background:#1e2d6b;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-                                            <i class="bi bi-wallet2"></i> Bayar
-                                        </a>
+                                        @if($order->payments()->where('status', 'paid')->exists())
+                                            <span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;">
+                                                <i class="bi bi-check-circle"></i> Sudah Dibayar
+                                            </span>
+                                        @else
+                                            <a href="{{ route('siswa.pembayaran.show', $order->id) }}"
+                                               style="background:#1e2d6b;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                                                <i class="bi bi-wallet2"></i> Bayar
+                                            </a>
+                                        @endif
                                     @endif
 
                                     <a href="{{ route('siswa.pemesanan.show', $order->id) }}"
@@ -150,7 +161,7 @@
                                     <em>{{ $order->catatan }}</em>
                                 </div>
                             @endif
-                            @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at)
+                            @if(in_array($order->effective_status, ['pending', 'confirmed']) && $order->expired_at && !$order->payments()->where('status', 'paid')->exists())
                                 @php
                                     $isUrgent = $order->expired_at->diffInHours(now()) < 4;
                                 @endphp

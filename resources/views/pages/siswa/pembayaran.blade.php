@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pembayaran #' . $order['id'] . ' — TutorKu')
+@section('title', 'Pembayaran #' . $order->id . ' — TutorKu')
 
 @section('content')
 
@@ -14,7 +14,7 @@
                 <span style="color:#b0b8cc;">/</span>
                 <a href="{{ route('siswa.pemesanan') }}" style="color:#1e2d6b;text-decoration:none;">Pemesanan</a>
                 <span style="color:#b0b8cc;">/</span>
-                <span style="color:#8890a8;">Pembayaran #{{ $order['id'] }}</span>
+                <span style="color:#8890a8;">Pembayaran #{{ $order->id }}</span>
             </div>
         </nav>
 
@@ -22,13 +22,13 @@
         <div style="margin-bottom:24px;">
             <h1 style="font-size:22px;font-weight:600;color:#1a1a2e;margin:0 0 4px;">Konfirmasi Pembayaran</h1>
             <p style="font-size:13px;color:#8890a8;margin:0;">
-                Booking <strong>#BK-{{ str_pad($order['id'], 6, '0', STR_PAD_LEFT) }}</strong> · {{ $order['tutor_name'] }}
+                Booking <strong>#BK-{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</strong> &middot; {{ $order->tutor->name ?? '-' }}
             </p>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start;">
 
-            {{-- LEFT: Metode & Upload --}}
+            {{-- LEFT: Ringkasan & Bayar --}}
             <div style="display:flex;flex-direction:column;gap:14px;">
 
                 {{-- Ringkasan Pesanan --}}
@@ -39,156 +39,71 @@
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:#f8f9fc;border:1px solid #e8eaf0;margin-bottom:14px;">
                         <div style="width:44px;height:44px;border-radius:50%;background:#1e2d6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0;">
-                            {{ strtoupper(substr($order['tutor_name'], 0, 2)) }}
+                            {{ strtoupper(substr($order->tutor->name ?? 'TK', 0, 2)) }}
                         </div>
                         <div>
-                            <div style="font-size:15px;font-weight:600;color:#1a1a2e;">{{ $order['tutor_name'] }}</div>
-                            <div style="font-size:13px;color:#8890a8;">{{ $order['mapel'] }}</div>
+                            <div style="font-size:15px;font-weight:600;color:#1a1a2e;">{{ $order->tutor->name ?? '-' }}</div>
+                            <div style="font-size:13px;color:#8890a8;">{{ $order->tutor->tutorSubjects->pluck('subjectCategory.name')->implode(', ') ?: '-' }}</div>
                         </div>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
-                        <span style="color:#8890a8;">Hari & Waktu</span>
-                        <span style="font-weight:500;color:#1a1a2e;">{{ $order['hari'] }}, {{ $order['jam'] }} WIB</span>
+                        <span style="color:#8890a8;">Tanggal</span>
+                        <span style="font-weight:500;color:#1a1a2e;">{{ $order->tanggal ?? '-' }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Jam</span>
+                        <span style="font-weight:500;color:#1a1a2e;">{{ $order->jam_range ?? '-' }} WIB</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
                         <span style="color:#8890a8;">Durasi</span>
-                        <span style="font-weight:500;color:#1a1a2e;">{{ $order['durasi'] }} jam</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;border-bottom:1px solid #f0f2f8;">
-                        <span style="color:#8890a8;">Tarif/jam</span>
-                        <span style="font-weight:500;color:#1a1a2e;">Rp {{ number_format($order['tarif_per_jam'], 0, ',', '.') }}</span>
+                        <span style="font-weight:500;color:#1a1a2e;">{{ $order->jumlah_jam }} jam</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-size:16px;margin-top:4px;">
                         <span style="font-weight:600;color:#1a1a2e;">Total Pembayaran</span>
-                        <span style="font-weight:700;color:#1e2d6b;font-size:18px;">Rp {{ number_format($order['total'], 0, ',', '.') }}</span>
+                        <span style="font-weight:700;color:#1e2d6b;font-size:18px;">Rp {{ number_format($order->total_payment, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
-                {{-- Pilih Metode Pembayaran --}}
+                {{-- Info Metode Pembayaran --}}
                 <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
                     <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
                         <i class="bi bi-credit-card" style="font-size:15px;color:#1e2d6b;"></i>
                         <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Metode Pembayaran</span>
                     </div>
-
-                    <div style="display:flex;flex-direction:column;gap:8px;" id="paymentMethods">
-                        {{-- Transfer Bank --}}
-                        <label id="pm_label_transfer" style="display:flex;align-items:center;gap:12px;padding:14px;border:2px solid #1e2d6b;border-radius:10px;cursor:pointer;background:#eef2ff;transition:all .15s;">
-                            <input type="radio" name="payment_method" value="transfer" checked style="display:none;">
+                    <p style="font-size:13px;color:#8890a8;margin:0 0 12px;line-height:1.6;">
+                        Setelah klik <strong>"Bayar Sekarang"</strong>, popup Midtrans akan muncul. Anda dapat memilih:
+                    </p>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:#f8f9fc;border:1px solid #e8eaf0;">
                             <div style="width:40px;height:40px;border-radius:8px;background:#1e2d6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
                                 <i class="bi bi-bank2"></i>
                             </div>
                             <div>
-                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">Transfer Bank</div>
-                                <div style="font-size:12px;color:#8890a8;">BCA, BNI, BRI, Mandiri</div>
+                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">Transfer Bank (Virtual Account)</div>
+                                <div style="font-size:12px;color:#8890a8;">BCA, BNI, BRI — Virtual Account otomatis</div>
                             </div>
-                        </label>
-
-                        {{-- E-Wallet --}}
-                        <label id="pm_label_ewallet" style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e8eaf0;border-radius:10px;cursor:pointer;background:#fff;transition:all .15s;">
-                            <input type="radio" name="payment_method" value="ewallet" style="display:none;">
-                            <div style="width:40px;height:40px;border-radius:8px;background:#eef2ff;color:#1e2d6b;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
-                                <i class="bi bi-phone"></i>
-                            </div>
-                            <div>
-                                <div style="font-size:14px;font-weight:600;color:#1a1a2e;">E-Wallet</div>
-                                <div style="font-size:12px;color:#8890a8;">GoPay, OVO, Dana, ShopeePay</div>
-                            </div>
-                        </label>
-
-                        {{-- QRIS --}}
-                        <label id="pm_label_qris" style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e8eaf0;border-radius:10px;cursor:pointer;background:#fff;transition:all .15s;">
-                            <input type="radio" name="payment_method" value="qris" style="display:none;">
-                            <div style="width:40px;height:40px;border-radius:8px;background:#eef2ff;color:#1e2d6b;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:#f8f9fc;border:1px solid #e8eaf0;">
+                            <div style="width:40px;height:40px;border-radius:8px;background:#1e2d6b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
                                 <i class="bi bi-qr-code"></i>
                             </div>
                             <div>
                                 <div style="font-size:14px;font-weight:600;color:#1a1a2e;">QRIS</div>
-                                <div style="font-size:12px;color:#8890a8;">Scan QR dari aplikasi apapun</div>
+                                <div style="font-size:12px;color:#8890a8;">Scan QR dari aplikasi bank atau e-wallet apapun</div>
                             </div>
-                        </label>
-                    </div>
-
-                    {{-- Detail Metode --}}
-                    <div style="margin-top:14px;">
-
-                        {{-- Transfer Detail --}}
-                        <div id="detail_transfer" style="background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:14px;">
-                            <div style="font-size:11px;color:#8890a8;font-weight:600;margin-bottom:10px;">NOMOR REKENING TUJUAN</div>
-                            @foreach([
-                                ['bank'=>'BCA', 'no'=>'1234 5678 9012', 'an'=>'TutorKu Indonesia'],
-                                ['bank'=>'BNI', 'no'=>'9876 5432 1098', 'an'=>'TutorKu Indonesia'],
-                                ['bank'=>'BRI', 'no'=>'0011 2233 4455', 'an'=>'TutorKu Indonesia'],
-                            ] as $rek)
-                                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;{{ !$loop->last ? 'border-bottom:1px solid #e8eaf0;' : '' }}">
-                                    <div>
-                                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;">{{ $rek['bank'] }} — {{ $rek['no'] }}</div>
-                                        <div style="font-size:12px;color:#8890a8;">a/n {{ $rek['an'] }}</div>
-                                    </div>
-                                    <button type="button" class="btn-copy-rek" data-text="{{ str_replace(' ', '', $rek['no']) }}"
-                                        style="border:none;background:transparent;color:#1e2d6b;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
-                                        <i class="bi bi-copy"></i> Salin
-                                    </button>
-                                </div>
-                            @endforeach
-                            <div style="margin-top:10px;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;">
-                                <i class="bi bi-exclamation-triangle-fill" style="color:#b45309;font-size:14px;flex-shrink:0;"></i>
-                                <span style="font-size:12px;color:#92400e;">
-                                    Transfer tepat sejumlah <strong>Rp {{ number_format($order['total'], 0, ',', '.') }}</strong> untuk verifikasi otomatis.
-                                </span>
-                            </div>
-                        </div>
-
-                        {{-- E-Wallet Detail --}}
-                        <div id="detail_ewallet" style="display:none;background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:14px;">
-                            <div style="font-size:11px;color:#8890a8;font-weight:600;margin-bottom:10px;">NOMOR TUJUAN E-WALLET</div>
-                            <div style="font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">0812 3456 7890</div>
-                            <div style="font-size:12px;color:#8890a8;">a/n TutorKu Indonesia (GoPay/OVO/Dana)</div>
-                        </div>
-
-                        {{-- QRIS Detail --}}
-                        <div id="detail_qris" style="display:none;text-align:center;background:#f8f9fc;border-radius:10px;border:1px solid #e8eaf0;padding:24px;">
-                            <div style="width:120px;height:120px;background:#e8eaf0;border-radius:10px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;">
-                                <i class="bi bi-qr-code" style="font-size:48px;color:#b0b8cc;"></i>
-                            </div>
-                            <div style="font-size:13px;color:#8890a8;">Scan QR ini menggunakan aplikasi e-wallet Anda</div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Upload Bukti Bayar --}}
+                {{-- Tombol Bayar --}}
                 <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
-                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
-                        <i class="bi bi-upload" style="font-size:15px;color:#1e2d6b;"></i>
-                        <span style="font-size:14px;font-weight:600;color:#1a1a2e;">Upload Bukti Pembayaran</span>
-                    </div>
-                    <p style="font-size:13px;color:#8890a8;margin:0 0 14px;">
-                        Upload screenshot/foto bukti transfer setelah melakukan pembayaran. Admin akan memverifikasi dalam 1×24 jam.
-                    </p>
-
-                    <div id="uploadDropzone"
-                         style="border:2px dashed #d0d5e8;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;">
-                        <i class="bi bi-cloud-upload" style="font-size:32px;color:#8890a8;display:block;margin-bottom:8px;"></i>
-                        <p style="font-size:13px;color:#8890a8;margin:0 0 4px;">Drag & drop atau klik untuk memilih file</p>
-                        <p style="font-size:11px;color:#b0b8cc;margin:0;">PNG, JPG, PDF — maks 5MB</p>
-                        <input type="file" id="buktiBayar" accept="image/*,.pdf" style="display:none;">
-                    </div>
-
-                    <div id="filePreview" style="display:none;margin-top:14px;">
-                        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid #bbf7d0;">
-                            <i class="bi bi-file-earmark-check" style="font-size:18px;color:#15803d;"></i>
-                            <div style="flex:1;min-width:0;">
-                                <div id="fileName" style="font-size:13px;font-weight:500;color:#15803d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-                                <div id="fileSize" style="font-size:11px;color:#8890a8;"></div>
-                            </div>
-                            <button type="button" id="removeFile" style="border:none;background:transparent;font-size:18px;color:#8890a8;cursor:pointer;">&times;</button>
-                        </div>
-                    </div>
-
-                    <button type="button" id="submitPayment"
-                        style="margin-top:18px;background:#1e2d6b;color:#fff;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
-                        <i class="bi bi-send-check"></i> Konfirmasi Pembayaran
+                    <button type="button" id="btnBayar"
+                        style="width:100%;background:#1e2d6b;color:#fff;border-radius:10px;padding:14px 20px;font-size:15px;font-weight:600;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;">
+                        <i class="bi bi-wallet2" style="font-size:18px;"></i> Bayar Sekarang
                     </button>
+                    <p style="font-size:12px;color:#b0b8cc;margin:10px 0 0;text-align:center;">
+                        Pembayaran diproses secara aman melalui Midtrans
+                    </p>
                 </div>
             </div>
 
@@ -203,6 +118,28 @@
                     <p style="font-size:13px;color:#8890a8;margin:0;">
                         Tutor telah mengkonfirmasi jadwal ini. Selesaikan pembayaran untuk mengunci sesi Anda.
                     </p>
+                </div>
+
+                {{-- Info Payment --}}
+                <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:18px 20px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                        <i class="bi bi-info-circle" style="font-size:15px;color:#1e2d6b;"></i>
+                        <span style="font-size:13px;font-weight:600;color:#1a1a2e;">Detail Transaksi</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Order ID</span>
+                        <span style="font-weight:500;color:#1a1a2e;font-family:monospace;font-size:11px;">{{ $payment->transactionId }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #f0f2f8;">
+                        <span style="color:#8890a8;">Status</span>
+                        <span style="font-weight:600;color:#b45309;">Menunggu Pembayaran</span>
+                    </div>
+                    @if($payment->expired_at)
+                    <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;">
+                        <span style="color:#8890a8;">Batas Waktu</span>
+                        <span style="font-weight:500;color:#92400e;">{{ $payment->expired_at->translatedFormat('d M Y, H:i') }} WIB</span>
+                    </div>
+                    @endif
                 </div>
 
                 {{-- Timeline --}}
@@ -233,19 +170,6 @@
                     @endforeach
                 </div>
 
-                {{-- WhatsApp --}}
-                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px 20px;">
-                    <div style="display:flex;gap:12px;">
-                        <i class="bi bi-whatsapp" style="font-size:22px;color:#15803d;flex-shrink:0;"></i>
-                        <div>
-                            <div style="font-size:13px;font-weight:600;color:#15803d;margin-bottom:4px;">Konfirmasi via WhatsApp</div>
-                            <p style="font-size:12px;color:#15803d;opacity:.7;margin:0;line-height:1.6;">
-                                Setelah pembayaran terverifikasi, detail sesi akan dikirim ke WhatsApp Anda secara otomatis.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -261,114 +185,54 @@
 @endsection
 
 @push('scripts')
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}"
+        data-client-key="{{ config('midtrans.client_key') }}"></script>
+
 <script>
 $(document).ready(function () {
 
-    const BOOKING_ID = {{ $order['id'] }};
-    let selectedFile  = null;
-    let selectedMethod = 'transfer';
+    const ORDER_ID = {{ $order->id }};
 
-    // ── Pilih metode pembayaran ──────────────────────────────
-    $('input[name="payment_method"]').on('change', function () {
-        selectedMethod = $(this).val();
-
-        // Reset all labels
-        $('#pm_label_transfer, #pm_label_ewallet, #pm_label_qris').css({
-            'border-color': '#e8eaf0',
-            'background': '#fff'
-        }).find('div:first-child').css({ 'background': '#eef2ff', 'color': '#1e2d6b' });
-
-        // Active label
-        const $active = $(this).closest('label');
-        $active.css({ 'border-color': '#1e2d6b', 'background': '#eef2ff' })
-               .find('div:first-child').css({ 'background': '#1e2d6b', 'color': '#fff' });
-
-        // Show/hide detail
-        $('#detail_transfer, #detail_ewallet, #detail_qris').hide();
-        $(`#detail_${selectedMethod}`).show();
-    });
-
-    // ── Salin nomor rekening ─────────────────────────────────
-    $(document).on('click', '.btn-copy-rek', function () {
-        const text = $(this).data('text');
-        navigator.clipboard.writeText(text).then(() => {
-            const $btn = $(this);
-            $btn.html('<i class="bi bi-check"></i> Disalin!');
-            setTimeout(() => $btn.html('<i class="bi bi-copy"></i> Salin'), 2000);
-        });
-    });
-
-    // ── Upload dropzone ──────────────────────────────────────
-    $('#uploadDropzone').on('click', function () { $('#buktiBayar').trigger('click'); });
-
-    $('#uploadDropzone').on('dragover', function (e) {
-        e.preventDefault();
-        $(this).css({ 'border-color': '#1e2d6b', 'background': '#eef2ff' });
-    }).on('dragleave', function () {
-        $(this).css({ 'border-color': '#d0d5e8', 'background': 'transparent' });
-    }).on('drop', function (e) {
-        e.preventDefault();
-        $(this).css({ 'border-color': '#d0d5e8', 'background': 'transparent' });
-        const file = e.originalEvent.dataTransfer.files[0];
-        if (file) handleFile(file);
-    });
-
-    $('#buktiBayar').on('change', function () {
-        if (this.files[0]) handleFile(this.files[0]);
-    });
-
-    function handleFile(file) {
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            Swal.fire({ icon: 'error', title: 'File Terlalu Besar', text: 'Ukuran file maksimal 5MB.' });
-            return;
-        }
-        selectedFile = file;
-        $('#fileName').text(file.name);
-        $('#fileSize').text((file.size / 1024).toFixed(1) + ' KB');
-        $('#filePreview').show();
-        $('#uploadDropzone').hide();
-    }
-
-    $('#removeFile').on('click', function () {
-        selectedFile = null;
-        $('#buktiBayar').val('');
-        $('#filePreview').hide();
-        $('#uploadDropzone').show();
-    });
-
-    // ── Submit pembayaran ────────────────────────────────────
-    $('#submitPayment').on('click', function () {
-        if (!selectedFile) {
-            Swal.fire({ icon: 'warning', title: 'Belum Ada File', text: 'Upload bukti pembayaran terlebih dahulu.' });
-            return;
-        }
-
+    $('#btnBayar').on('click', function () {
         const $btn = $(this);
         $btn.prop('disabled', true)
-            .html('<span style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;"></span> Memproses...');
-
-        const formData = new FormData();
-        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
-        formData.append('payment_method', selectedMethod);
-        formData.append('bukti_bayar', selectedFile);
+            .css('opacity', '0.7')
+            .html('<span style="display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;"></span> Memproses...');
 
         $.ajax({
-            url: `/siswa/pemesanan/${BOOKING_ID}/bayar`,
+            url: '{{ route("siswa.pembayaran.process", $order->id) }}',
             method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function (res) {
-                window.location.href = res.redirect || `/siswa/pemesanan/${BOOKING_ID}/sukses`;
+                window.snap.pay(res.snap_token, {
+                    onSuccess: function () {
+                        window.location.href = '{{ route("siswa.pembayaran.sukses", $order->id) }}';
+                    },
+                    onPending: function () {
+                        window.location.href = '{{ route("siswa.pembayaran.sukses", $order->id) }}';
+                    },
+                    onError: function () {
+                        Swal.fire({ icon: 'error', title: 'Pembayaran Gagal', text: 'Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.' });
+                        resetBtn($btn);
+                    },
+                    onClose: function () {
+                        Swal.fire({ icon: 'info', title: 'Pembayaran Dibatalkan', text: 'Anda menutup halaman pembayaran. Anda dapat mencoba kembali kapan saja.' });
+                        resetBtn($btn);
+                    }
+                });
             },
             error: function (xhr) {
-                Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Gagal mengirim bukti pembayaran.' });
-                $btn.prop('disabled', false)
-                    .html('<i class="bi bi-send-check"></i> Konfirmasi Pembayaran');
+                Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Terjadi kesalahan. Silakan coba lagi.' });
+                resetBtn($btn);
             }
         });
     });
+
+    function resetBtn($btn) {
+        $btn.prop('disabled', false)
+            .css('opacity', '1')
+            .html('<i class="bi bi-wallet2" style="font-size:18px;"></i> Bayar Sekarang');
+    }
 
 });
 </script>

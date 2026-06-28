@@ -14,9 +14,10 @@
 <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:8px;">
     <i class="bi bi-info-circle" style="color:#3730a3;font-size:14px;margin-top:1px;"></i>
     <span style="font-size:12px;color:#3730a3;line-height:1.5;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#dcfce7;border:1px solid #86efac;margin-right:2px;"></span> Kosong — bisa dihapus &nbsp;
-        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#fef9c3;border:1px solid #fde047;margin-right:2px;"></span> Menunggu bayar — tidak bisa dihapus &nbsp;
-        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#fee2e2;border:1px solid #fca5a5;margin-right:2px;"></span> Dikonfirmasi — tidak bisa dihapus
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#dcfce7;border:1px solid #86efac;margin-right:2px;"></span> Tersedia — bisa dihapus &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#fef9c3;border:1px solid #fde047;margin-right:2px;"></span> Dibooking, menunggu bayar &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#dbeafe;border:1px solid #93c5fd;margin-right:2px;"></span> Sudah dibayar — sesi aktif &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#f0fdf4;border:1px solid #86efac;margin-right:2px;"></span> Selesai
     </span>
 </div>
 
@@ -44,32 +45,40 @@
                         @foreach($daySchedules as $slot)
                             @php
                                 $hasActive = $slot->has_active_locks;
-                                $hasConfirmed = collect($slot->locked_dates)->contains('status', 'confirmed');
                                 $hasLocked = collect($slot->locked_dates)->contains('status', 'locked');
+                                $hasConfirmedPaid = $slot->has_confirmed_paid;
+                                $hasPaid = $slot->has_paid;
 
-                                if ($hasConfirmed) {
-                                    $bgColor = '#fef2f2'; $borderColor = '#fca5a5'; $textColor = '#991b1b'; $statusLabel = 'Dikonfirmasi';
+                                if ($hasPaid) {
+                                    $bgColor = '#f0fdf4'; $borderColor = '#86efac'; $textColor = '#15803d'; $statusLabel = 'Selesai'; $statusIcon = 'bi-check-circle-fill';
+                                } elseif ($hasConfirmedPaid) {
+                                    $bgColor = '#dbeafe'; $borderColor = '#93c5fd'; $textColor = '#1e40af'; $statusLabel = 'Sudah Dibayar'; $statusIcon = 'bi-wallet2';
                                 } elseif ($hasLocked) {
-                                    $bgColor = '#fef9c3'; $borderColor = '#fde047'; $textColor = '#854d0e'; $statusLabel = 'Menunggu bayar';
+                                    $bgColor = '#fef9c3'; $borderColor = '#fde047'; $textColor = '#854d0e'; $statusLabel = 'Menunggu Bayar'; $statusIcon = 'bi-hourglass-split';
                                 } else {
-                                    $bgColor = '#f0fdf4'; $borderColor = '#a7f3d0'; $textColor = '#15803d'; $statusLabel = 'Kosong';
+                                    $bgColor = '#f0fdf4'; $borderColor = '#a7f3d0'; $textColor = '#15803d'; $statusLabel = 'Tersedia'; $statusIcon = 'bi-check-circle';
                                 }
                             @endphp
                             <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:8px 10px;border-radius:8px;background:{{ $bgColor }};border:1px solid {{ $borderColor }};">
                                 <div style="flex:1;min-width:0;">
-                                    <div style="font-size:12px;font-weight:500;color:{{ $textColor }};">
-                                        {{ $slot->jam_start }} — {{ $slot->jam_end }}
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <i class="bi {{ $statusIcon }}" style="font-size:11px;color:{{ $textColor }};"></i>
+                                        <span style="font-size:12px;font-weight:500;color:{{ $textColor }};">
+                                            {{ $slot->jam_start }} — {{ $slot->jam_end }}
+                                        </span>
+                                        @if($hasActive || $hasConfirmedPaid || $hasPaid)
+                                            <span style="font-size:9px;padding:1px 6px;border-radius:4px;background:{{ $hasPaid ? '#dcfce7' : ($hasConfirmedPaid ? '#bfdbfe' : ($hasLocked ? '#fef9c3' : '#dcfce7')) }};color:{{ $textColor }};font-weight:600;margin-left:auto;">
+                                                {{ $statusLabel }}
+                                            </span>
+                                        @endif
                                     </div>
                                     @if($hasActive)
                                         <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">
                                             @foreach($slot->locked_dates as $lock)
-                                                <span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:{{ $lock['status'] === 'confirmed' ? '#fee2e2' : '#fef9c3' }};color:{{ $lock['status'] === 'confirmed' ? '#991b1b' : '#854d0e' }};">
+                                                <span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;background:{{ $lock['status'] === 'confirmed' ? '#dbeafe' : '#fef9c3' }};color:{{ $lock['status'] === 'confirmed' ? '#1e40af' : '#854d0e' }};">
                                                     {{ $lock['tanggal'] }}
                                                 </span>
                                             @endforeach
-                                        </div>
-                                        <div style="font-size:10px;color:{{ $textColor }};opacity:.7;margin-top:3px;">
-                                            <i class="bi bi-lock-fill" style="margin-right:2px;"></i>{{ $slot->active_lock_count }} booking mendatang
                                         </div>
                                     @endif
                                 </div>

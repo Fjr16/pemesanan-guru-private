@@ -65,7 +65,7 @@
 
 {{-- ── Filter tabs ───────────────────────────────────────────── --}}
 <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
-    @foreach(['' => 'Semua', 'pending' => 'Pending', 'confirmed' => 'Dikonfirmasi', 'completed' => 'Selesai', 'rejected' => 'Ditolak', 'canceled' => 'Dibatalkan', 'expired' => 'Kedaluwarsa'] as $val => $label)
+    @foreach(['' => 'Semua', 'pending' => 'Pending', 'confirmed' => 'Dikonfirmasi', 'complete' => 'Selesai', 'rejected' => 'Ditolak', 'canceled' => 'Dibatalkan', 'expired' => 'Kedaluwarsa'] as $val => $label)
         <a href="?status={{ $val }}"
            style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;text-decoration:none;transition:all .15s;{{ request('status', '') === $val ? 'background:#1e2d6b;color:#fff;' : 'background:#fff;color:#4b5574;border:1px solid #e8eaf0;' }}">
             {{ $label }}
@@ -99,7 +99,11 @@
                             @if($st === 'pending')
                                 <span style="background:#fffbeb;color:#92400e;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;">Pending</span>
                             @elseif($st === 'confirmed')
-                                <span style="background:#eff6ff;color:#1e40af;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;">Dikonfirmasi</span>
+                                @if($order->payments()->where('status', 'paid')->exists())
+                                    <span style="background:#f0fdf4;color:#15803d;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;">Sudah Dibayar</span>
+                                @else
+                                    <span style="background:#eff6ff;color:#1e40af;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;">Menunggu Bayar</span>
+                                @endif
                             @elseif($st === 'complete')
                                 <span style="background:#f0fdf4;color:#15803d;font-size:10px;font-weight:500;padding:2px 8px;border-radius:12px;">Selesai</span>
                             @elseif($st === 'rejected')

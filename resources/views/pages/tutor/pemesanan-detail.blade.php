@@ -56,7 +56,11 @@ setInterval(updateCountdowns, 1000);
                 @if($st === 'pending')
                     <span style="background:#fffbeb;color:#92400e;font-size:11px;font-weight:500;padding:3px 10px;border-radius:16px;">Menunggu Konfirmasi</span>
                 @elseif($st === 'confirmed')
-                    <span style="background:#eff6ff;color:#1e40af;font-size:11px;font-weight:500;padding:3px 10px;border-radius:16px;">Dikonfirmasi</span>
+                    @if($order->payments()->where('status', 'paid')->exists())
+                        <span style="background:#f0fdf4;color:#15803d;font-size:11px;font-weight:500;padding:3px 10px;border-radius:16px;">Sudah Dibayar</span>
+                    @else
+                        <span style="background:#eff6ff;color:#1e40af;font-size:11px;font-weight:500;padding:3px 10px;border-radius:16px;">Menunggu Bayar</span>
+                    @endif
                 @elseif($st === 'complete')
                     <span style="background:#f0fdf4;color:#15803d;font-size:11px;font-weight:500;padding:3px 10px;border-radius:16px;">Selesai</span>
                 @elseif($st === 'rejected')
@@ -199,31 +203,40 @@ setInterval(updateCountdowns, 1000);
                 </p>
             </div>
         @elseif($st === 'confirmed')
+            @php $isPaid = $order->payments()->where('status', 'paid')->exists(); @endphp
             <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;margin-bottom:14px;">
                 <div style="text-align:center;">
-                    <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-                        <i class="bi bi-check-circle-fill" style="font-size:22px;color:#15803d;"></i>
-                    </div>
-                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Pesanan Dikonfirmasi</div>
-                    <div style="font-size:12px;color:#8890a8;margin-bottom:8px;">Menunggu pembayaran dari siswa.</div>
-                    @if($order->expired_at)
-                        @php $isUrgent = $order->expired_at->diffInHours(now()) < 4; @endphp
-                        <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;background:{{ $isUrgent ? '#fef2f2' : '#fffbeb' }};border:1px solid {{ $isUrgent ? '#fecaca' : '#fde68a' }};margin-bottom:14px;">
-                            <i class="bi bi-alarm" style="font-size:13px;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></i>
-                            <span style="font-size:12px;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};">Batas pembayaran:</span>
-                            <span class="countdown-tutor-detail" data-expired="{{ $order->expired_at->timestamp }}" style="font-size:12px;font-weight:700;font-family:monospace;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></span>
+                    @if($isPaid)
+                        <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+                            <i class="bi bi-wallet2" style="font-size:22px;color:#15803d;"></i>
                         </div>
-                    @endif
+                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Pembayaran Diterima</div>
+                        <div style="font-size:12px;color:#8890a8;margin-bottom:14px;">Sesi siap dimulai sesuai jadwal.</div>
 
-                    <form method="POST" action="{{ route('tutor.pemesanan.selesai', $order->id) }}">
-                        @csrf
-                        <button type="submit"
-                                style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#1e2d6b;color:#fff;transition:background .15s;"
-                                onmouseover="this.style.background='#162252'"
-                                onmouseout="this.style.background='#1e2d6b'">
-                            <i class="bi bi-patch-check"></i> Tandai Selesai
-                        </button>
-                    </form>
+                        <form method="POST" action="{{ route('tutor.pemesanan.selesai', $order->id) }}">
+                            @csrf
+                            <button type="submit"
+                                    style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#1e2d6b;color:#fff;transition:background .15s;"
+                                    onmouseover="this.style.background='#162252'"
+                                    onmouseout="this.style.background='#1e2d6b'">
+                                <i class="bi bi-patch-check"></i> Tandai Selesai
+                            </button>
+                        </form>
+                    @else
+                        <div style="width:48px;height:48px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+                            <i class="bi bi-hourglass-split" style="font-size:22px;color:#1e40af;"></i>
+                        </div>
+                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Menunggu Pembayaran</div>
+                        <div style="font-size:12px;color:#8890a8;margin-bottom:8px;">Siswa belum melakukan pembayaran.</div>
+                        @if($order->expired_at)
+                            @php $isUrgent = $order->expired_at->diffInHours(now()) < 4; @endphp
+                            <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:6px;background:{{ $isUrgent ? '#fef2f2' : '#fffbeb' }};border:1px solid {{ $isUrgent ? '#fecaca' : '#fde68a' }};">
+                                <i class="bi bi-alarm" style="font-size:13px;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></i>
+                                <span style="font-size:12px;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};">Batas pembayaran:</span>
+                                <span class="countdown-tutor-detail" data-expired="{{ $order->expired_at->timestamp }}" style="font-size:12px;font-weight:700;font-family:monospace;color:{{ $isUrgent ? '#dc2626' : '#92400e' }};"></span>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
         @elseif($st === 'complete')
@@ -276,9 +289,11 @@ setInterval(updateCountdowns, 1000);
             </div>
 
             @php
+                $isPaid = $order->payments()->where('status', 'paid')->exists();
                 $steps = [
                     ['icon' => 'bi-plus-circle', 'color' => '#3730a3', 'label' => 'Pesanan dibuat', 'time' => $order->created_at, 'done' => true],
                     ['icon' => 'bi-check-lg', 'color' => '#15803d', 'label' => 'Tutor mengkonfirmasi', 'time' => $st === 'confirmed' || $st === 'complete' ? $order->updated_at : null, 'done' => in_array($st, ['confirmed', 'complete'])],
+                    ['icon' => 'bi-wallet2', 'color' => '#15803d', 'label' => 'Pembayaran diterima', 'time' => $isPaid ? $order->payments()->where('status', 'paid')->first()->paid_at : null, 'done' => $isPaid],
                     ['icon' => 'bi-patch-check', 'color' => '#1e40af', 'label' => 'Sesi selesai', 'time' => $st === 'complete' ? $order->updated_at : null, 'done' => $st === 'complete'],
                 ];
 

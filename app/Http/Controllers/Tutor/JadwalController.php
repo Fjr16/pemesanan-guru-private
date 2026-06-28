@@ -29,7 +29,8 @@ class JadwalController extends Controller
         $schedules = TutorSchedule::where('tutor_id', $tutor->id)
             ->with(['scheduleLocks' => function ($q) {
                 $q->where('tanggal', '>=', now()->toDateString())
-                    ->whereIn('status', ['locked', 'confirmed']);
+                    ->whereIn('status', ['locked', 'confirmed'])
+                    ->with('orderDetail.order');
             }])
             ->orderByRaw("FIELD(day, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu')")
             ->orderBy('jam_start')
@@ -43,6 +44,20 @@ class JadwalController extends Controller
                     return $lock->status === 'locked' && $lock->expired_at && $lock->expired_at->isFuture();
                 });
 
+                $hasPaid = $activeLocks->contains(function ($lock) {
+                    return $lock->status === 'confirmed'
+                        && $lock->orderDetail
+                        && $lock->orderDetail->order
+                        && $lock->orderDetail->order->status === 'complete';
+                });
+
+                $hasConfirmedPaid = $activeLocks->contains(function ($lock) {
+                    return $lock->status === 'confirmed'
+                        && $lock->orderDetail
+                        && $lock->orderDetail->order
+                        && $lock->orderDetail->order->status !== 'complete';
+                });
+
                 return (object) [
                     'id' => $slot->id,
                     'day' => $slot->day,
@@ -50,6 +65,8 @@ class JadwalController extends Controller
                     'jam_end' => $slot->jam_end->format('H:i'),
                     'has_active_locks' => $activeLocks->isNotEmpty(),
                     'active_lock_count' => $activeLocks->count(),
+                    'has_paid' => $hasPaid,
+                    'has_confirmed_paid' => $hasConfirmedPaid,
                     'locked_dates' => $activeLocks->map(fn ($l) => [
                         'tanggal' => $l->tanggal->translatedFormat('d M'),
                         'status' => $l->status,
