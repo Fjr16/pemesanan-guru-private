@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\PaymentSuccessMail;
 use App\Models\Payment;
 use App\Models\ScheduleLock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class MidtransCallbackController extends Controller
 {
@@ -59,6 +61,8 @@ class MidtransCallbackController extends Controller
                     'status' => 'confirmed',
                     'expired_at' => null,
                 ]);
+
+                Mail::to($payment->order->student->user->email)->queue(new PaymentSuccessMail($payment->order));
 
             } elseif ($transactionStatus === 'expire') {
                 $payment->update(['status' => 'expired']);

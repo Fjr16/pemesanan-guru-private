@@ -37,8 +37,8 @@ class AppServiceProvider extends ServiceProvider
 
         Carbon::setLocale('id');
 
-        if (! config('midtrans.is_production')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
-        }
+        // if (! config('midtrans.is_production')) {
+        //     \Illuminate\Support\Facades\URL::forceScheme('https');
+        // }
     }
 }

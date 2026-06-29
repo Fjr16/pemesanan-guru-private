@@ -17,12 +17,12 @@ class MidtransService
         Config::$isSanitized = config('midtrans.is_sanitized');
         Config::$is3ds = config('midtrans.is_3ds');
 
-        if (! config('midtrans.is_production')) {
-            Config::$curlOptions = [
-                CURLOPT_CAINFO => 'C:/xampp/php/extras/cacert.pem',
-                CURLOPT_HTTPHEADER => [],
-            ];
-        }
+        // if (! config('midtrans.is_production')) {
+        //     Config::$curlOptions = [
+        //         CURLOPT_CAINFO => 'C:/xampp/php/extras/cacert.pem',
+        //         CURLOPT_HTTPHEADER => [],
+        //     ];
+        // }
     }
 
     public function createTransaction(Order $order): array

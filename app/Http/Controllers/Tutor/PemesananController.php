@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Tutor;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmedMail;
+use App\Mail\OrderRejectedMail;
 use App\Models\Order;
 use App\Models\ScheduleLock;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class PemesananController extends Controller
 {
@@ -16,7 +20,8 @@ class PemesananController extends Controller
 
         if (! $tutor) {
             return view('pages.tutor.pemesanan', [
-                'orders' => collect()->paginate(10),
+                // 'orders' => collect()->paginate(10),
+                'orders' => new LengthAwarePaginator([],0,10),
                 'counts' => ['pending' => 0, 'confirmed' => 0, 'completed' => 0, 'canceled' => 0, 'rejected' => 0, 'expired' => 0],
             ]);
         }
@@ -79,6 +84,8 @@ class PemesananController extends Controller
             ->where('status', 'locked')
             ->update(['expired_at' => now()->addHours(24)]);
 
+        Mail::to($order->student->user->email)->queue(new OrderConfirmedMail($order));
+
         return redirect()->route('tutor.pemesanan.show', $id)->with('success', 'Pesanan berhasil diterima. Menunggu pembayaran siswa.');
     }
 
@@ -98,6 +105,8 @@ class PemesananController extends Controller
         ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
             ->where('status', 'locked')
             ->update(['status' => 'release']);
+
+        Mail::to($order->student->user->email)->queue(new OrderRejectedMail($order));
 
         return redirect()->route('tutor.pemesanan')->with('success', 'Pesanan ditolak.');
     }
