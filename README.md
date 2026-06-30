@@ -107,7 +107,29 @@ tar -xzf /tmp/mailpit.tar.gz -C /tmp/ mailpit
 chmod +x /tmp/mailpit
 ```
 
-Jalankan Mailpit:
+Install dan jalankan Mailpit di windows
+1. Download Mailpit
+Buka di browser:
+
+https://github.com/axllent/mailpit/releases/latest
+Cari file:
+mailpit-windows-amd64.zip
+2. Extract ke Folder
+Extract ke lokasi yang mudah diingat, misal taruh di dalam folder XAMPP biar rapi:
+C:\xampp\mailpit\
+Di dalamnya akan ada file mailpit.exe.
+Jalankan Mailpit
+Buka Command Prompt, masuk ke folder tadi:
+cd C:\xampp\mailpit
+mailpit.exe
+
+Akan muncul output:
+INFO  Mailpit listening on smtp://0.0.0.0:1025
+INFO  Mailpit HTTP UI on http://0.0.0.0:8025
+Biarkan jendela CMD ini tetap terbuka selama development. Cek di browser:
+http://localhost:8025
+
+Jalankan Mailpit linux:
 
 ```bash
 nohup /tmp/mailpit -s "[::]:1025" -l "[::]:8025" > /tmp/mailpit.log 2>&1 &
@@ -373,3 +395,18 @@ routes/
 ## License
 
 MIT
+
+## cacert.pem
+Kalau belum ada, download dulu dari https://curl.se/ca/cacert.pem dan taruh di path itu C:\xampp\php\extras\cacert.pem
+aktifkan  komentar code pada MidtransService
+<!-- // if (! config('midtrans.is_production')) {
+//     Config::$curlOptions = [
+//         CURLOPT_CAINFO => 'C:/xampp/php/extras/cacert.pem',
+//         CURLOPT_HTTPHEADER => [],
+//     ];
+// } -->
+
+dan juga pada AppServiceProvider
+<!-- // if (! config('midtrans.is_production')) {
+//     \Illuminate\Support\Facades\URL::forceScheme('https');
+// } -->
