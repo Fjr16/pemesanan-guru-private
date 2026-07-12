@@ -27,11 +27,15 @@ class TransaksiController extends Controller
         }
 
         if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->from);
+            $query->whereHas('orderDetails', function($q) use ($request){
+                $q->whereDate('tanggal', '>=', $request->from);
+            });
         }
 
         if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->to);
+            $query->whereHas('orderDetails',function($q) use ($request){
+                $q->whereDate('tanggal', '<=', $request->to);
+            });
         }
 
         $stats = [
