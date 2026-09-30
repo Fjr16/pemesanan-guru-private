@@ -117,7 +117,7 @@
                     @if($order->catatan)
                         <div style="margin-top:14px;padding:10px 14px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;">
                             <div style="font-size:11px;color:#92400e;font-weight:500;margin-bottom:4px;">CATATAN</div>
-                            <div style="font-size:13px;color:#78350f;line-height:1.6;">{{ $order->catatan }}</div>
+                            <div style="font-size:13px;color:#78350f;line-height:1.6; white-space: pre-line;">{{ $order->catatan }}</div>
                         </div>
                     @endif
                 </div>

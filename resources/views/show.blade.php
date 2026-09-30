@@ -99,7 +99,7 @@
                     </h2>
                 </div>
                 <div class="tk-card-body">
-                    <p style="font-size:.9375rem;line-height:1.7;color:var(--tk-text-muted);">
+                    <p style="font-size:.9375rem;line-height:1.7;color:var(--tk-text-muted);white-space:pre-line;">
                         {{ $tutor->desc ?? 'Tutor berpengalaman siap membantu belajarmu.' }}
                     </p>
 
@@ -378,8 +378,11 @@
 
                             <div class="mt-3">
                                 <label class="tk-form-label" for="catatanInput">Catatan untuk Tutor (opsional)</label>
-                                <textarea id="catatanInput" rows="2" class="tk-form-control"
-                                          placeholder="cth: Saya butuh bantuan bab limit dan turunan..."></textarea>
+                                <textarea id="catatanInput" rows="5" class="tk-form-control"
+                                          placeholder="cth: Saya butuh bantuan bab limit dan turunan...">{{ 
+                                            "Tujuan les private : - \nSekolah /universitas sekarang / tujuan : - \nKurikulum: - \njenjang / tingkatan : - \nKebutuhan khusus / catatan tambahan : - \n" 
+                                          }}
+                                </textarea>
                             </div>
 
                             <div class="mt-3">

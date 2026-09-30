@@ -5,6 +5,26 @@
 
 @section('content')
 
+<style>
+.lokasi-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border: 1px solid #e8eaf0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #4b5574;
+    background: #fff;
+    transition: all .15s;
+}
+.lokasi-option:has(input:checked) {
+    border-color: #3730a3;
+    background: #eef2ff;
+    color: #3730a3;
+}
+</style>
 <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;">
 
     {{-- ── Kiri: Avatar & stats ────────────────────────────── --}}
@@ -154,7 +174,7 @@
                     </div>
                     <div>
                         <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:4px;display:block;">Tanggal Lahir</label>
-                        <input type="date" name="tanggal_lhr" value="{{ old('tanggal_lhr', $tutor->tanggal_lhr ?? '') }}"
+                        <input type="date" name="tanggal_lhr" value="{{ old('tanggal_lhr', Carbon\Carbon::parse($tutor->tanggal_lhr)->format('Y-m-d') ?? '') }}"
                                style="width:100%;height:36px;padding:0 12px;border:1px solid {{ $errors->has('tanggal_lhr') ? '#ef4444' : '#e8eaf0' }};border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
                     </div>
                     <div>
@@ -172,20 +192,36 @@
                         <input type="number" name="hourly_rate" value="{{ old('hourly_rate', $tutor->hourly_rate ?? '') }}" min="10000"
                                style="width:100%;height:36px;padding:0 12px;border:1px solid {{ $errors->has('hourly_rate') ? '#ef4444' : '#e8eaf0' }};border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;">
                     </div>
+                    {{-- <div style="grid-column:1/-1;">
+                        <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:4px;display:block;">Lokasi Mengajar</label>
+                        <div style="display:flex;gap:8px;">
+                            @foreach(['offline' => 'Offline', 'online' => 'Online', 'fleksibel' => 'Fleksibel'] as $val => $label)
+                                <label style="display:flex;align-items:center;gap:6px;padding:7px 16px;border:1px solid {{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#3730a3' : '#e8eaf0' }};border-radius:8px;cursor:pointer;font-size:13px;color:{{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#3730a3' : '#4b5574' }};background:{{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#eef2ff' : '#fff' }};transition:all .15s;" for="{{ $val }}">
+                                    <input type="radio" id="{{ $val }}" name="lokasi_mengajar" value="{{ $val }}" {{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? 'checked' : '' }} style="display:none;">
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div> --}}
                     <div style="grid-column:1/-1;">
                         <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:4px;display:block;">Lokasi Mengajar</label>
                         <div style="display:flex;gap:8px;">
                             @foreach(['offline' => 'Offline', 'online' => 'Online', 'fleksibel' => 'Fleksibel'] as $val => $label)
-                                <label style="display:flex;align-items:center;gap:6px;padding:7px 16px;border:1px solid {{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#3730a3' : '#e8eaf0' }};border-radius:8px;cursor:pointer;font-size:13px;color:{{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#3730a3' : '#4b5574' }};background:{{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? '#eef2ff' : '#fff' }};transition:all .15s;">
-                                    <input type="radio" name="lokasi_mengajar" value="{{ $val }}" {{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? 'checked' : '' }} style="display:none;">
+                                <label class="lokasi-option" for="{{ $val }}">
+                                    <input type="radio" id="{{ $val }}" name="lokasi_mengajar" value="{{ $val }}"
+                                        {{ old('lokasi_mengajar', $tutor->lokasi_mengajar ?? '') === $val ? 'checked' : '' }}
+                                        style="display:none;">
                                     {{ $label }}
                                 </label>
                             @endforeach
                         </div>
                     </div>
                     <div style="grid-column:1/-1;">
+                        @php
+                            $outlineDefault = "Kurikulum yang digunakan : - \nJenjang Pendidikan dikuasai : -\nVisi/misi/jargon : - \n\ndeskripsikan dan promosikan diri anda disini";
+                        @endphp
                         <label style="font-size:12px;font-weight:500;color:#4b5574;margin-bottom:4px;display:block;">Deskripsi</label>
-                        <textarea name="desc" rows="3" style="width:100%;padding:8px 12px;border:1px solid {{ $errors->has('desc') ? '#ef4444' : '#e8eaf0' }};border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;resize:vertical;">{{ old('desc', $tutor->desc ?? '') }}</textarea>
+                        <textarea name="desc" rows="5" style="width:100%;padding:8px 12px;border:1px solid {{ $errors->has('desc') ? '#ef4444' : '#e8eaf0' }};border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a2e;background:#fff;outline:none;resize:vertical;">{{ old('desc', $tutor->desc ?? $outlineDefault) }}</textarea>
                     </div>
                 </div>
             </div>

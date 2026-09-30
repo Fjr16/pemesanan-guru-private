@@ -410,12 +410,15 @@
         {{-- Bio / Deskripsi --}}
         <div class="mb-4">
             <label class="tk-form-label" for="desc">Tentang Anda <span class="opt">(opsional)</span></label>
-            <textarea id="desc" name="desc" rows="3"
+            @php
+                $outlineDefault = "Kurikulum yang digunakan : - \nJenjang Pendidikan dikuasai : -\nVisi/misi/jargon : - \n\ndeskripsikan dan promosikan diri anda disini";
+            @endphp
+            <textarea id="desc" name="desc" rows="5"
                       class="tk-form-control @error('desc') is-invalid @enderror"
                       placeholder="Ceritakan pengalaman dan keunggulan Anda sebagai tutor..."
-                      style="resize:vertical;">{{ old('desc') }}</textarea>
+                      style="resize:vertical;">{{ old('desc', $outlineDefault) }}</textarea>
             <div class="d-flex justify-content-end mt-1">
-                <span class="text-muted" style="font-size:.75rem;" id="bioCount">{{ strlen(old('desc', '')) }}/500 karakter</span>
+                <span class="text-muted" style="font-size:.75rem;" id="bioCount">{{ strlen(old('desc', '')) }}/1000 karakter</span>
             </div>
             @error('desc')
                 <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>

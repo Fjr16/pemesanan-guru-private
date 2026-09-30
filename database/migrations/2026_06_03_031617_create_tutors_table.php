@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('tanggal_lhr')->nullable(false);
             $table->string('foto')->nullable(true);
             $table->string('domisili')->nullable(false);
-            $table->string('desc')->nullable(true);
+            $table->string('desc', 1000)->nullable(true);
             $table->string('job',30)->nullable(false);
             $table->decimal('hourly_rate')->nullable(false);
             $table->enum('lokasi_mengajar', ['offline', 'online', 'fleksibel'])->default('offline');
