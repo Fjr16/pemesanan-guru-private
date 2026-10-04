@@ -12,8 +12,15 @@
     // Tentukan step tutor saat validation error
     $tutorStep = 1;
     if ($hasErrors && $isTutor) {
+        $step1Fields = ['username', 'email', 'no_hp', 'password', 'password_confirmation'];
+        $step2Fields = ['tutor_name', 'jenis_kelamin', 'tutor_tanggal_lhr', 'address_tutor', 'lat_tutor', 'lng_tutor', 'job', 'subject_tingkatan', 'hourly_rate', 'lokasi_mengajar', 'desc'];
         $step3Fields = ['schedules', 'riwayat_pendidikan', 'pengalaman'];
-        $tutorStep = 2;
+        foreach ($step1Fields as $f) {
+            if ($errors->has($f) || $errors->has($f . '.*')) { $tutorStep = 1; break; }
+        }
+        foreach ($step2Fields as $f) {
+            if ($errors->has($f) || $errors->has($f . '.*')) { $tutorStep = 2; break; }
+        }
         foreach ($step3Fields as $f) {
             if ($errors->has($f) || $errors->has($f . '.*')) { $tutorStep = 3; break; }
         }
@@ -102,7 +109,7 @@
                 <input type="text" id="username" name="username"
                        class="tk-form-control @error('username') is-invalid @enderror"
                        placeholder="Username untuk login"
-                       value="{{ old('username') }}" required>
+                       value="{{ old('username') }}" autocomplete="username" required>
             </div>
             @error('username')
                 <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
@@ -146,7 +153,7 @@
                 <i class="bi bi-lock tk-input-icon"></i>
                 <input type="password" id="password" name="password"
                        class="tk-form-control @error('password') is-invalid @enderror"
-                       placeholder="Minimal 8 karakter" required>
+                       placeholder="Minimal 8 karakter" autocomplete="new-password" required>
                 <button type="button" class="tk-password-toggle" tabindex="-1">
                     <i class="bi bi-eye-slash"></i>
                 </button>
@@ -162,7 +169,7 @@
             <div class="tk-input-group">
                 <i class="bi bi-lock-fill tk-input-icon"></i>
                 <input type="password" id="password_confirmation" name="password_confirmation"
-                       class="tk-form-control" placeholder="Ulangi password" required>
+                       class="tk-form-control" placeholder="Ulangi password" autocomplete="new-password" required>
                 <button type="button" class="tk-password-toggle" tabindex="-1">
                     <i class="bi bi-eye-slash"></i>
                 </button>
@@ -226,19 +233,25 @@
                     @enderror
                 </div>
             </div>
-
             <div class="mb-3">
                 <label class="tk-form-label" for="alamat">Alamat Domisili <span class="req">*</span></label>
-                <div class="tk-input-group">
-                    <i class="bi bi-house-door tk-input-icon"></i>
-                    <input type="text" id="alamat" name="alamat"
-                           class="tk-form-control @error('alamat') is-invalid @enderror"
-                           placeholder="Alamat lengkap domisili"
-                           value="{{ old('alamat') }}" {{ $isTutor ? '' : 'required' }}>
+                <div class="autocomplete-container" id="autocomplete-container"></div>
+                <div id="map" style="height: 400px;"></div>
+
+                <div class="card mt-4 p-3">
+                    <div class="form-group">
+                        <label for="lat">Alamat:</label>
+                        <input type="text" class="form-control" name="alamat" id="address" placeholder="Geser pin ke lokasi yang tepat" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="lat">Latitude:</label>
+                        <input type="text" class="form-control" name="lat" id="lat" placeholder="Latitude" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="lng">Longitude:</label>
+                        <input type="text" class="form-control" name="lng" id="lng" placeholder="Longitude" readonly>
+                    </div>
                 </div>
-                @error('alamat')
-                    <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
-                @enderror
             </div>
         </div>
 
@@ -312,7 +325,7 @@
                        class="tk-form-control tanggal-input @error('tutor_tanggal_lhr') is-invalid @enderror"
                        value="{{ old('tutor_tanggal_lhr') }}">
                 </div>
-                @error('tanggal_lhr')
+                @error('tutor_tanggal_lhr')
                     <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
                 @enderror
             </div>
@@ -320,17 +333,24 @@
 
         {{-- Domisili --}}
         <div class="mb-3">
-            <label class="tk-form-label" for="domisili">Domisili <span class="req">*</span></label>
-            <div class="tk-input-group">
-                <i class="bi bi-geo-alt tk-input-icon"></i>
-                <input type="text" id="domisili" name="domisili"
-                       class="tk-form-control @error('domisili') is-invalid @enderror"
-                       placeholder="Kota domisili saat ini"
-                       value="{{ old('domisili') }}">
+            <label class="tk-form-label">Alamat Domisili <span class="req">*</span></label>
+            <div class="autocomplete-container" id="autocomplete-container-tutor"></div>
+            <div id="map-tutor" style="height: 400px;"></div>
+
+            <div class="card mt-4 p-3"> 
+                <div class="form-group">
+                    <label for="address_tutor">Alamat:</label>
+                    <input type="text" class="tk-form-control @error('address_tutor') is-invalid @enderror" name="address_tutor" id="address_tutor" placeholder="Geser pin ke lokasi yang tepat" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="lat_tutor">Latitude:</label>
+                    <input type="text" class="tk-form-control @error('lat_tutor') is-invalid @enderror" name="lat_tutor" id="lat_tutor" placeholder="Latitude" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="lng_tutor">Longitude:</label>
+                    <input type="text" class="tk-form-control @error('lng_tutor') is-invalid @enderror" name="lng_tutor" id="lng_tutor" placeholder="Longitude" readonly>
+                </div>
             </div>
-            @error('domisili')
-                <div class="invalid-feedback d-block mt-1" style="font-size:.8rem;">{{ $message }}</div>
-            @enderror
         </div>
 
         {{-- Pekerjaan --}}
@@ -625,10 +645,99 @@
 .req { color:#991b1b; margin-left:2px; }
 .opt { color:#b0b8cc; font-size:.7rem; font-weight:400; margin-left:4px; }
 </style>
+
+{{-- css --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    #map { height: 100vh; }
+    .autocomplete-container {
+        margin-bottom: 20px;
+    }
+
+    .input-container {
+        display: flex;
+        position: relative;
+    }
+
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0px 2px 10px 2px rgba(0, 0, 0, 0.1);
+        border-top: none;
+        background-color: #fff;
+
+        z-index: 999;
+        top: calc(100% + 2px);
+        left: 0;
+        right: 0;
+    }
+
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    .autocomplete-items div:hover {
+        /*when hovering an item:*/
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .autocomplete-items .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .input-container input {
+        flex: 1;
+        outline: none;
+        
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        padding-right: 31px;
+        font-size: 16px;
+    }
+
+    .clear-button {
+        color: rgba(0, 0, 0, 0.4);
+        cursor: pointer;
+        
+        position: absolute;
+        right: 5px;
+        top: 0;
+
+        height: 100%;
+        display: none;
+        align-items: center;
+        }
+
+        .clear-button.visible {
+        display: flex;
+        }
+
+        .clear-button:hover {
+        color: rgba(0, 0, 0, 0.6);
+        }
+</style>
 @endpush
 
 
 @push('scripts')
+{{-- js maps--}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="{{ asset('js/location-picker.js') }}?v={{ filemtime(public_path('js/location-picker.js')) }}"></script>
+<script>
+    const pickers = {
+        siswa: LocationPicker.create({
+            mapId: 'map', containerId: 'autocomplete-container', inputId: 'searchBar',
+            address: '#address', lat: '#lat', lng: '#lng',
+        }),
+        tutor: LocationPicker.create({
+            mapId: 'map-tutor', containerId: 'autocomplete-container-tutor', inputId: 'searchBarTutor',
+            address: '#address_tutor', lat: '#lat_tutor', lng: '#lng_tutor',
+        }),
+    };
+</script>
+
 <script>
 $(document).ready(function () {
 
@@ -732,6 +841,15 @@ $(document).ready(function () {
         currentStep = step;
         updateStepIndicator(step);
         syncDisabledState();
+
+        if (currentRole === 'tutor' && step === 2) {
+            pickers.tutor.refresh();
+            pickers.tutor.locateOnce();
+        }
+        if (currentRole === 'siswa' && step === 1) {
+            pickers.siswa.refresh();
+            pickers.siswa.locateOnce();
+        }
     }
 
     function updateStepIndicator(step) {
@@ -766,7 +884,7 @@ $(document).ready(function () {
             if (!$('#siswa_name').val().trim())     { flashField('#siswa_name', 'Nama wajib diisi.'); return false; }
             if (!$('#tempat_lhr').val().trim())      { flashField('#tempat_lhr', 'Tempat lahir wajib diisi.'); return false; }
             if (!$('#siswa_tanggal_lhr').val())      { flashField('#siswa_tanggal_lhr', 'Tanggal lahir wajib diisi.'); return false; }
-            if (!$('#alamat').val().trim())          { flashField('#alamat', 'Alamat wajib diisi.'); return false; }
+            if (!$('#lat').val() || !$('#lng').val()) { flashField('#address', 'Pilih alamat dari saran atau geser pin.'); return false; }
         }
         return true;
     }
@@ -775,7 +893,9 @@ $(document).ready(function () {
         if (!$('#tutor_name').val().trim())  { flashField('#tutor_name', 'Nama wajib diisi.'); return false; }
         if (!$('#jenis_kelamin').val())      { flashField('#jenis_kelamin', 'Pilih jenis kelamin.'); return false; }
         if (!$('#tanggal_lhr_tutor').val())  { flashField('#tanggal_lhr_tutor', 'Tanggal lahir wajib diisi.'); return false; }
-        if (!$('#domisili').val().trim())     { flashField('#domisili', 'Domisili wajib diisi.'); return false; }
+        if (!$('#address_tutor').val().trim())     { flashField('#address_tutor', 'Alamat wajib diisi.'); return false; }
+        if (!$('#lat_tutor').val().trim())     { flashField('#lat_tutor', 'Latitude wajib diisi.'); return false; }
+        if (!$('#lng_tutor').val().trim())     { flashField('#lng_tutor', 'Longitude wajib diisi.'); return false; }
         if (!$('#job').val().trim())          { flashField('#job', 'Pekerjaan wajib diisi.'); return false; }
 
         const selectedSubjects = getSelectedSubjects();
@@ -952,6 +1072,7 @@ $(document).ready(function () {
         $('#psLabel').text(labels[score-1] || '').css('color', colors[score-1]);
     });
 
+    if (currentRole === 'siswa') goToStep(1);
 });
 </script>
 @endpush

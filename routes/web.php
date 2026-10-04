@@ -139,3 +139,8 @@ Route::middleware('throttle:api')->prefix('api')->name('api.')->group(function (
     Route::middleware('auth')->post('/booking', [App\Http\Controllers\Api\BookingController::class, 'store'])->name('booking.store');
 
 });
+
+
+Route::get('leaflet', function () {
+    return view('maps');
+});

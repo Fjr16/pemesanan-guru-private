@@ -18,6 +18,9 @@ return new class extends Migration
             $table->enum('status', ['pending','confirmed','rejected','complete','expired','canceled'])->nullable(false);
             $table->string('catatan')->nullable(true);
             $table->decimal('total_payment')->nullable(true);
+            $table->string('alamat_order',500)->nullable(false);
+            $table->decimal('latitude_order',10,7)->nullable(false);
+            $table->decimal('langitude_order',10,7)->nullable(false);
             $table->timestamp('expired_at')->nullable(true);
             $table->timestamps();
         });

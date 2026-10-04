@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Observers\TutorObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['user_id', 'name', 'jenis_kelamin', 'tanggal_lhr', 'foto', 'domisili', 'desc', 'job', 'hourly_rate', 'lokasi_mengajar'])]
+#[Fillable(['user_id', 'name', 'jenis_kelamin', 'tanggal_lhr', 'foto', 'domisili', 'desc', 'job', 'hourly_rate', 'lokasi_mengajar', 'latitude', 'langitude'])]
+#[ObservedBy([TutorObserver::class])]
 class Tutor extends Model
 {
     use SoftDeletes;
@@ -16,6 +19,10 @@ class Tutor extends Model
         return [
             'tanggal_lhr' => 'date',
             'hourly_rate' => 'decimal:2',
+            // 'latitude' => 'decimal:10,7',
+            // 'langitude' => 'decimal:10,7',
+            'latitude' => 'float',
+            'langitude' => 'float',
         ];
     }
 
@@ -37,5 +44,9 @@ class Tutor extends Model
     }
     public function orders(){
         return $this->hasMany(Order::class);
+    }
+    public function cacheDistances()
+    {
+        return $this->hasMany(CacheDistance::class);
     }
 }

@@ -210,7 +210,7 @@
     @stack('styles')
 </head>
 <body>
-
+<x-loading-overlay/>
 <div class="tk-shell">
 
     <!-- SIDEBAR -->
@@ -291,7 +291,10 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('js/app.js') }}"></script>
-
+    
+<script>
+    window.APP_CONFIG = { geoapifyKey: @json(config('services.geoapify.frontend_key')) };
+</script>
 @stack('scripts')
 
 <script>

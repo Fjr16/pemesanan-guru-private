@@ -37,6 +37,7 @@
     </style>
 </head>
 <body>
+    <x-loading-overlay />
 
     {{-- ============================================================
          NAVBAR
@@ -231,6 +232,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('js/app.js') }}"></script>
 
+    <script>
+        window.APP_CONFIG = { geoapifyKey: @json(config('services.geoapify.frontend_key')) };
+    </script>
     @stack('scripts')
 </body>
 </html>

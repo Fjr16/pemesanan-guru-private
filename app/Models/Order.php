@@ -57,6 +57,9 @@ class Order extends Model
         'catatan',
         'total_payment',
         'expired_at',
+        'alamat_order',
+        'latitude_order',
+        'langitude_order',
     ];
 
     protected function casts(): array
@@ -64,6 +67,8 @@ class Order extends Model
         return [
             'total_payment' => 'decimal:2',
             'expired_at' => 'datetime',
+            'latitude_order' => 'decimal:10,7',
+            'langitude_order' => 'decimal:10,7',
         ];
     }
 

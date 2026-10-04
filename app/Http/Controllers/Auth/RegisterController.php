@@ -51,18 +51,26 @@ class RegisterController extends Controller
                 'siswa_name'         => ['required', 'string', 'max:100'],
                 'tempat_lhr'         => ['required', 'string', 'max:50'],
                 'siswa_tanggal_lhr'  => ['required', 'date', 'before:today'],
-                'alamat'             => ['required', 'string', 'max:255'],
+                'alamat'             => ['required', 'string', 'max:500'],
+                'lat'  => 'required|numeric|between:-90,90|decimal:0,7',
+                'lng' => 'required|numeric|between:-180,180|decimal:0,7',
             ]), array_merge($baseMessages, [
                 'siswa_name.required'        => 'Nama lengkap wajib diisi.',
                 'siswa_tanggal_lhr.required' => 'Tanggal lahir wajib diisi.',
                 'siswa_tanggal_lhr.before'   => 'Tanggal lahir harus sebelum hari ini.',
+                'lat.required'               => 'Latitude wajib diisi.',
+                'lng.required'               => 'Longitude wajib diisi.',
+                'lat.between'                => 'Latitude harus antara -90 dan 90.',
+                'lng.between'                => 'Longitude harus antara -180 dan 180.',
+                'lat.decimal'                => 'Latitude harus memiliki maksimal 7 angka desimal.',
+                'lng.decimal'                => 'Longitude harus memiliki maksimal 7 angka desimal.',
+                'alamat.max'                 => 'Alamat maksimal 500 karakter.',
             ]));
         } else {
             $request->validate(array_merge($baseRules, [
                 'tutor_name'               => ['required', 'string', 'max:50'],
                 'jenis_kelamin'            => ['required', 'in:Pria,Wanita'],
                 'tutor_tanggal_lhr'        => ['required', 'date', 'before:today'],
-                'domisili'                 => ['required', 'string', 'max:100'],
                 'job'                      => ['required', 'string', 'max:30'],
                 'hourly_rate'              => ['required', 'numeric', 'min:10000'],
                 'lokasi_mengajar'          => ['required', 'in:offline,online,fleksibel'],
@@ -79,6 +87,9 @@ class RegisterController extends Controller
                 'pengalaman.*.periode'                 => ['required_with:pengalaman', 'string', 'max:50'],
                 'pengalaman.*.jumlah_siswa'            => ['required_with:pengalaman', 'integer', 'min:0'],
                 'pengalaman.*.tempat'                  => ['nullable', 'string', 'max:100'],
+                'address_tutor'                 => ['required', 'string', 'max:500'],
+                'lat_tutor'                    => ['required', 'numeric', 'between:-90,90', 'decimal:0,7'],
+                'lng_tutor'                    => ['required', 'numeric', 'between:-180,180', 'decimal:0,7'],
             ]), array_merge($baseMessages, [
                 'tutor_name.required'              => 'Nama lengkap wajib diisi.',
                 'tutor_tanggal_lhr.required'       => 'Tanggal lahir wajib diisi.',
@@ -91,6 +102,14 @@ class RegisterController extends Controller
                 'jenis_kelamin.in'                 => 'Jenis kelamin harus Pria atau Wanita.',
                 'hourly_rate.min'                  => 'Tarif minimal Rp 10.000.',
                 'lokasi_mengajar.in'               => 'Lokasi mengajar tidak valid.',
+                'address_tutor.required'           => 'Alamat wajib diisi.',
+                'lat_tutor.required'               => 'Latitude wajib diisi.',
+                'lng_tutor.required'               => 'Longitude wajib diisi.',
+                'lat_tutor.between'                => 'Latitude harus antara -90 dan 90.',
+                'lng_tutor.between'                => 'Longitude harus antara -180 dan 180.',
+                'lat_tutor.decimal'                => 'Latitude harus memiliki maksimal 7 angka desimal.',
+                'lng_tutor.decimal'                => 'Longitude harus memiliki maksimal 7 angka desimal.',
+                'address_tutor.max'                => 'Alamat maksimal 500 karakter.',
             ]));
         }
 
@@ -111,6 +130,8 @@ class RegisterController extends Controller
                     'tempat_lhr'   => $request->tempat_lhr,
                     'tanggal_lhr'  => $request->siswa_tanggal_lhr,
                     'alamat'       => $request->alamat,
+                    'latitude_dom' => $request->lat,
+                    'langitude_dom' => $request->lng,
                 ]);
 
                 Auth::login($user);
@@ -126,7 +147,9 @@ class RegisterController extends Controller
                 'name'            => $request->tutor_name,
                 'jenis_kelamin'   => $request->jenis_kelamin,
                 'tanggal_lhr'     => $request->tutor_tanggal_lhr,
-                'domisili'        => $request->domisili,
+                'domisili'   => $request->address_tutor,
+                'latitude'       => $request->lat_tutor,
+                'langitude'       => $request->lng_tutor,
                 'desc'            => $request->desc,
                 'job'             => $request->job,
                 'hourly_rate'     => $request->hourly_rate,

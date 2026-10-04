@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'geoapify' => [
+        'frontend_key' => env('GEOAPIFY_API_KEY_SHOW'),
+        'backend_key'  => env('GEOAPIFY_API_KEY_HIDDEN'),
+    ],
 
 ];

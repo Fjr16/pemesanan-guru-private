@@ -14,7 +14,9 @@
 
     @stack('styles')
 </head>
+
 <body class="tk-auth-body">
+    <x-loading-overlay/>
 
     <div class="tk-auth-wrapper">
 
@@ -108,6 +110,9 @@
         });
     </script>
 
+    <script>
+        window.APP_CONFIG = { geoapifyKey: @json(config('services.geoapify.frontend_key')) };
+    </script>
     @stack('scripts')
 </body>
 </html>

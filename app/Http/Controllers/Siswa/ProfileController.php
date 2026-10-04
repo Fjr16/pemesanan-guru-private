@@ -34,11 +34,17 @@ class ProfileController extends Controller
             'name'           => ['required', 'string', 'max:100'],
             'tempat_lhr'     => ['required', 'string', 'max:50'],
             'tanggal_lhr'    => ['required', 'date', 'before:today'],
-            'alamat'         => ['required', 'string', 'max:255'],
+            'alamat'         => ['required', 'string', 'max:500'],
+            'lat'            => ['required', 'numeric', 'between:-90,90', 'decimal:0,7'],
+            'lng'            => ['required', 'numeric', 'between:-180,180', 'decimal:0,7'],
         ], [
             'username.unique'         => 'Username sudah digunakan.',
             'email.unique'            => 'Email sudah terdaftar.',
             'tanggal_lhr.before'      => 'Tanggal lahir harus sebelum hari ini.',
+            'lat.between'             => 'Latitude harus antara -90 dan 90.',
+            'lng.between'             => 'Longitude harus antara -180 dan 180.',
+            'lat.decimal'             => 'Latitude harus berupa angka desimal.',
+            'lng.decimal'             => 'Longitude harus berupa angka desimal.',
         ]);
 
         $user->update([
@@ -54,6 +60,8 @@ class ProfileController extends Controller
                 'tempat_lhr'   => $request->tempat_lhr,
                 'tanggal_lhr'  => $request->tanggal_lhr,
                 'alamat'       => $request->alamat,
+                'latitude_dom' => $request->lat,
+                'langitude_dom' => $request->lng,
             ]
         );
 

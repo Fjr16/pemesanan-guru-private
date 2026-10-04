@@ -17,7 +17,9 @@ return new class extends Migration
             $table->string('name')->nullable(false);
             $table->string('tempat_lhr')->nullable(true);
             $table->date('tanggal_lhr')->nullable(false);
-            $table->text('alamat')->nullable(false);
+            $table->string('alamat',500)->nullable(false);
+            $table->decimal('latitude_dom',10,7)->nullable(false);
+            $table->decimal('langitude_dom',10,7)->nullable(false);
             $table->softDeletes();
             $table->timestamps();
         });

@@ -45,17 +45,26 @@ class ProfileController extends Controller
             'name'          => ['required', 'string', 'max:50'],
             'jenis_kelamin' => ['required', 'in:Pria,Wanita'],
             'tanggal_lhr'   => ['required', 'date', 'before:today'],
-            'domisili'      => ['required', 'string', 'max:100'],
+            'domisili'      => ['required', 'string', 'max:500'],
             'desc'          => ['nullable', 'string', 'max:500'],
             'job'           => ['required', 'string', 'max:30'],
             'hourly_rate'   => ['required', 'numeric', 'min:10000'],
             'lokasi_mengajar' => ['required', 'in:offline,online,fleksibel'],
+            'lat'           => ['required', 'numeric', 'between:-90,90', 'decimal:0,7'],
+            'lng'           => ['required', 'numeric', 'between:-180,180', 'decimal:0,7'],
         ], [
             'username.unique'      => 'Username sudah digunakan.',
             'email.unique'         => 'Email sudah terdaftar.',
             'jenis_kelamin.in'     => 'Jenis kelamin harus Pria atau Wanita.',
             'hourly_rate.min'      => 'Tarif minimal Rp 10.000.',
             'lokasi_mengajar.in'   => 'Lokasi mengajar tidak valid.',
+            'tanggal_lhr.before'   => 'Tanggal lahir harus sebelum hari ini.',
+            'lat.required'          => 'Latitude wajib diisi.',
+            'lng.required'          => 'Longitude wajib diisi.',
+            'lat.between'           => 'Latitude harus antara -90 dan 90.',
+            'lng.between'           => 'Longitude harus antara -180 dan 180.',
+            'lat.decimal'           => 'Latitude harus berupa angka desimal.',
+            'lng.decimal'           => 'Longitude harus berupa angka desimal.',
         ]);
 
         $user->update([
@@ -74,6 +83,8 @@ class ProfileController extends Controller
                 'job'             => $request->job,
                 'hourly_rate'     => $request->hourly_rate,
                 'lokasi_mengajar' => $request->lokasi_mengajar,
+                'latitude'        => $request->lat,
+                'langitude'       => $request->lng,
             ]);
         }
 
