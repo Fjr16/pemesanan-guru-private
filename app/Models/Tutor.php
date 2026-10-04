@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 #[Fillable(['user_id', 'name', 'jenis_kelamin', 'tanggal_lhr', 'foto', 'domisili', 'desc', 'job', 'hourly_rate', 'lokasi_mengajar', 'latitude', 'langitude'])]
 #[ObservedBy([TutorObserver::class])]
@@ -48,5 +49,23 @@ class Tutor extends Model
     public function cacheDistances()
     {
         return $this->hasMany(CacheDistance::class);
+    }
+    public function scopeWithinRadius(Builder $query, float $lat, float $lng, float $radiusM): Builder
+    {
+        // Bounding box
+        $latDelta = $radiusM / 111045;
+        $lngDelta = $radiusM / (111045 * cos(deg2rad($lat)));
+
+        $distance = '(6371000 * ACOS(LEAST(1, COS(RADIANS(?)) * COS(RADIANS(latitude)) * COS(RADIANS(langitude) - RADIANS(?)) + SIN(RADIANS(?)) * SIN(RADIANS(latitude)))))';
+        if (empty($query->getQuery()->columns)) {
+            $query->select('tutors.*');
+        }
+        return $query
+            ->selectRaw(
+                "$distance AS distance", [$lat, $lng, $lat]
+            )
+            ->whereBetween('latitude', [$lat - $latDelta, $lat + $latDelta])
+            ->whereBetween('langitude', [$lng - $lngDelta, $lng + $lngDelta])
+            ->whereRaw("$distance <= ?", [$lat, $lng, $lat, $radiusM]);
     }
 }

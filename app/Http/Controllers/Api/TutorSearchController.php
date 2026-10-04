@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CacheDistance;
 use App\Models\Tutor;
 use App\Models\TutorSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class TutorSearchController extends Controller
 {
@@ -22,7 +24,22 @@ class TutorSearchController extends Controller
             $query->whereHas('tutorSubjects', fn ($q) => $q->where('subject_category_id', $mapelId));
         }
 
-        switch ($request->input('sort', 'popular')) {
+        $student = auth()->user()->student;
+        $nearest = $request->input('lokasi_filter') === 'terdekat';
+        if ($nearest) {
+            $lat = $student->latitude_dom ?? null;
+            $lng = $student->langitude_dom ?? null;
+
+            if ($lat === null || $lng === null) {
+                return response()->json(['data' => [], 'total' => 0, 'page' => 0, 'has_more' => false]);
+            }
+
+            $lat = (float) $lat;
+            $lng = (float) $lng;
+            $query->withinRadius($lat, $lng, 5000);
+        }
+
+        switch ($request->input('sort')) {
             case 'rating':
                 $query->orderByDesc('session_count');
                 break;
@@ -32,8 +49,11 @@ class TutorSearchController extends Controller
             case 'price_desc':
                 $query->orderByDesc('hourly_rate');
                 break;
-            default:
+            case 'populer' : 
                 $query->orderByDesc('session_count');
+                break;
+            default:
+                $nearest ? $query->orderBy('distance') : null;
         }
 
         $perPage = 6;
@@ -41,16 +61,26 @@ class TutorSearchController extends Controller
         $total = $query->count();
         $tutors = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
-        $data = $tutors->map(fn ($t) => [
-            'id' => $t->id,
-            'name' => $t->name,
-            'bio' => $t->desc ?? 'Tutor berpengalaman siap membantu belajarmu.',
-            'hourly_rate' => (float) $t->hourly_rate,
-            'rating' => 0,
-            'rating_count' => 0,
-            'session_count' => $t->session_count,
-            'subjects' => $t->tutorSubjects->map(fn ($ts) => $ts->subjectCategory->name ?? '-')->toArray(),
-        ])->toArray();
+        $routes = $nearest ? $this->routeDistances($tutors, $student, $lat, $lng) : [];
+
+        $data = $tutors->map(function ($t) use ($routes, $nearest) {
+            $row = [
+                'id' => $t->id,
+                'name' => $t->name,
+                'bio' => $t->desc ?? 'Tutor berpengalaman siap membantu belajarmu.',
+                'hourly_rate' => (float) $t->hourly_rate,
+                'rating' => 0,
+                'rating_count' => 0,
+                'session_count' => $t->session_count,
+                'subjects' => $t->tutorSubjects->map(fn ($ts) => $ts->subjectCategory->name ?? '-')->toArray(),
+            ];
+            if ($nearest) {
+                $row['route_m']   = $routes[$t->id]['m'] ?? round((float) $t->distance, 2);
+                $row['route_sec'] = $routes[$t->id]['s'] ?? null;
+            }
+
+            return $row;
+        })->all();
 
         return response()->json([
             'data' => $data,
@@ -112,5 +142,60 @@ class TutorSearchController extends Controller
             ->pluck('day');
 
         return response()->json(['days' => $days->values()->all()]);
+    }
+
+    private function routeDistances($tutors, $student, float $lat, float $lng): array
+    {
+        if ($tutors->isEmpty()) return [];
+
+        $cached = CacheDistance::where('student_id', $student->id)
+            ->whereIn('tutor_id', $tutors->pluck('id'))
+            // ->where('computed_at', '>=', now()->subDays(7))
+            ->get()->keyBy('tutor_id');
+
+        $result = $cached->map(fn ($c) => ['m' => $c->distance_m, 's' => $c->duration_s])->all();
+        $missing = $tutors->whereNotIn('id', $cached->keys())->values();
+
+        if ($missing->isEmpty()) return $result;
+
+        try {
+            $locations = $missing
+                ->map(fn ($t) => [(float) $t->langitude, (float) $t->latitude])
+                ->prepend([$lng, $lat])->values()->all();
+
+            $res = Http::timeout(30)
+                ->withHeaders(['Authorization' => config('services.open_route_service.key')])
+                ->post('https://api.heigit.org/openrouteservice/v2/matrix/driving-car', [
+                    'locations'    => $locations,
+                    'sources'      => ['0'],
+                    'destinations' => array_map('strval', range(1, $missing->count())),
+                    'metrics'      => ['distance', 'duration'],
+                    'units'        => 'm',
+                ])->throw()->json();
+
+            $rows = [];
+            foreach ($missing as $i => $t) {
+                $m = $res['distances'][0][$i] ?? null;
+                $s = $res['durations'][0][$i] ?? null;
+                if ($m === null) continue;
+
+                $result[$t->id] = ['m' => round($m, 2), 's' => $s];
+                $rows[] = [
+                    'student_id'  => $student->id,
+                    'tutor_id'    => $t->id,
+                    'distance_m'  => round($m, 2),
+                    'duration_s'  => $s,
+                    'computed_at' => now(),
+                ];
+            }
+
+            if ($rows) {
+                CacheDistance::upsert($rows, ['student_id', 'tutor_id'], ['distance_m', 'duration_s', 'computed_at']);
+            }
+        } catch (\Throwable $e) {
+            report($e); // fallback ke jarak garis lurus (distance)
+        }
+
+        return $result;
     }
 }

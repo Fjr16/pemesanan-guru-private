@@ -40,8 +40,12 @@
                         <option value="{{ $mp->id }}">{{ $mp->nama }}</option>
                     @endforeach
                 </select>
-
-                <div class="tk-search-divider d-none d-sm-block"></div>
+                
+                {{-- Pilih lokasi --}}
+                <select name="lokasi_filter" id="searchLokasi" class="tk-search-select" aria-label="Pilih lokasi">
+                    <option value="">Semua Lokasi</option>
+                    <option value="terdekat">Lokasi Terdekat</option>
+                </select>
 
                 {{-- Tombol cari --}}
                 <button type="submit" class="tk-search-btn" id="searchBtn">
@@ -114,6 +118,7 @@
                 <span class="text-muted" style="font-size:.8125rem;">Urutkan:</span>
                 <select id="sortSelect" class="form-select form-select-sm"
                         style="width:auto;font-size:.8125rem;border-color:var(--tk-border);border-radius:var(--tk-radius);">
+                    <option value="default">Default</option>
                     <option value="popular">Terpopuler</option>
                     <option value="rating">Rating tertinggi</option>
                     <option value="price_asc">Harga terendah</option>
@@ -302,7 +307,8 @@ $(document).ready(function () {
 
         currentFilters = {
             mata_pelajaran_id: $('#searchMapel').val(),
-            sort: $('#sortSelect').val()
+            sort: $('#sortSelect').val(),
+            lokasi_filter: $('#searchLokasi').val()
         };
 
         const mapelText = $('#searchMapel option:selected').text();
@@ -329,7 +335,7 @@ $(document).ready(function () {
         // Sync select
         $('#searchMapel').val(id);
 
-        currentFilters = { mata_pelajaran_id: id, sort: $('#sortSelect').val() };
+        currentFilters = { mata_pelajaran_id: id, sort: $('#sortSelect').val(), lokasi_filter: $('#searchLokasi').val() };
         currentPage = 1;
         updateResultsHeader(nama);
         doSearch(currentFilters, 1, false);
@@ -442,6 +448,7 @@ $(document).ready(function () {
                        display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                         ${t.bio || 'Tutor berpengalaman siap membantu belajarmu.'}
                     </p>
+
                     <div class="tk-divider"></div>
                     <div class="d-flex align-items-center justify-content-between">
                         <div>

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->integer('duration_s')->nullable(false);
             $table->timestamp('computed_at')->nullable(false);
             $table->timestamps();
+
+            $table->index(['tutor_id', 'student_id']);
         });
     }
 

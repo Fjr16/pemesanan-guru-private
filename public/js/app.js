@@ -213,6 +213,21 @@ function loadTutors(params = {}) {
     });
 }
 
+
+function formatJarak(m) {
+    if (m === null || m === undefined) return null;
+    return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+}
+
+function formatWaktu(sec) {
+    if (sec === null || sec === undefined) return null;
+    const min = Math.round(sec / 60);
+    if (min < 1) return '< 1 mnt';
+    if (min < 60) return min + ' mnt';
+    const h = Math.floor(min / 60), r = min % 60;
+    return r ? `${h} jam ${r} mnt` : `${h} jam`;
+}
+
 /**
  * Render array of tutor objects menjadi Bootstrap card grid
  */
@@ -236,6 +251,22 @@ function renderTutorCards(tutors) {
             `<span class="tk-badge-subject">${s}</span>`
         ).join('');
 
+        const jarak = formatJarak(t.route_m);
+        const waktu = formatWaktu(t.route_sec);
+
+        const lokasiInfo = jarak ? `
+        <div class="d-flex gap-3 mb-3">
+            <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-geo-alt text-muted" style="font-size:.8rem;"></i>
+                <span style="font-size:.75rem;color:var(--tk-text-muted);">${jarak}</span>
+            </div>
+            ${waktu ? `
+            <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-clock text-muted" style="font-size:.8rem;"></i>
+                <span style="font-size:.75rem;color:var(--tk-text-muted);">${waktu}</span>
+            </div>` : ''}
+        </div>` : '';
+
         html += `
         <div class="col-sm-6 col-lg-4">
             <div class="tk-tutor-card">
@@ -255,6 +286,8 @@ function renderTutorCards(tutors) {
                    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     ${t.bio || 'Tutor berpengalaman siap membantu belajarmu.'}
                 </p>
+
+                ${lokasiInfo}
 
                 <div class="tk-divider"></div>
 

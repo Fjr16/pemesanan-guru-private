@@ -11,7 +11,7 @@ class CacheDistance extends Model
     protected function casts(): array
     {
         return [
-            'distance_m' => 'decimal:10,2',
+            'distance_m' => 'float',
             'duration_s' => 'integer',
             'computed_at' => 'datetime',
         ];

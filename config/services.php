@@ -38,5 +38,7 @@ return [
         'frontend_key' => env('GEOAPIFY_API_KEY_SHOW'),
         'backend_key'  => env('GEOAPIFY_API_KEY_HIDDEN'),
     ],
-
+    'open_route_service' => [
+        'key' => env('OPEN_ROUTE_SERVICE_API_KEY'),
+    ],
 ];

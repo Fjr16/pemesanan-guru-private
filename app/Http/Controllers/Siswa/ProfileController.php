@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -47,24 +48,38 @@ class ProfileController extends Controller
             'lng.decimal'             => 'Longitude harus berupa angka desimal.',
         ]);
 
-        $user->update([
-            'username' => $request->username,
-            'email'    => $request->email,
-            'no_hp'    => $request->no_hp,
-        ]);
+        $newLat = (float) $request->lat;
+        $newLng = (float) $request->lng;
 
-        $user->student()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'name'         => $request->name,
-                'tempat_lhr'   => $request->tempat_lhr,
-                'tanggal_lhr'  => $request->tanggal_lhr,
-                'alamat'       => $request->alamat,
-                'latitude_dom' => $request->lat,
-                'langitude_dom' => $request->lng,
-            ]
-        );
+        $coordChanged =
+        $student?->latitude_dom !== null && $student?->langitude_dom !== null &&
+        (number_format((float) $student->latitude_dom, 7, '.', '') !== number_format($newLat, 7, '.', '') ||
+        number_format((float) $student->langitude_dom, 7, '.', '') !== number_format($newLng, 7, '.', ''));
 
+        DB::transaction(function () use ($student, $request, $coordChanged, $newLat, $newLng, $user) {
+            $user->update([
+                'username' => $request->username,
+                'email'    => $request->email,
+                'no_hp'    => $request->no_hp,
+            ]);    
+
+            $user->student()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'name'         => $request->name,
+                    'tempat_lhr'   => $request->tempat_lhr,
+                    'tanggal_lhr'  => $request->tanggal_lhr,
+                    'alamat'       => $request->alamat,
+                    'latitude_dom' => $newLat,
+                    'langitude_dom' => $newLng,
+                ]
+            );
+
+            if ($coordChanged) {
+                $student->cacheDistances()->delete();
+            }
+        });
+        
         return back()->with('success', 'Profil berhasil diperbarui.');
     }
 

@@ -9,6 +9,7 @@ use App\Models\TutorProfile;
 use App\Models\TutorSubject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
@@ -74,18 +75,32 @@ class ProfileController extends Controller
         ]);
 
         if ($tutor) {
-            $tutor->update([
-                'name'            => $request->name,
-                'jenis_kelamin'   => $request->jenis_kelamin,
-                'tanggal_lhr'     => $request->tanggal_lhr,
-                'domisili'        => $request->domisili,
-                'desc'            => $request->desc,
-                'job'             => $request->job,
-                'hourly_rate'     => $request->hourly_rate,
-                'lokasi_mengajar' => $request->lokasi_mengajar,
-                'latitude'        => $request->lat,
-                'langitude'       => $request->lng,
-            ]);
+            $newLat = (float) $request->lat;
+            $newLng = (float) $request->lng;
+
+            $coordChanged =
+            $tutor->latitude !== null && $tutor->langitude !== null &&
+            (number_format((float) $tutor->latitude, 7, '.', '') !== number_format($newLat, 7, '.', '') ||
+            number_format((float) $tutor->langitude, 7, '.', '') !== number_format($newLng, 7, '.', ''));
+
+            DB::transaction(function () use ($tutor, $request, $coordChanged, $newLat, $newLng) {
+                $tutor->update([
+                    'name'            => $request->name,
+                    'jenis_kelamin'   => $request->jenis_kelamin,
+                    'tanggal_lhr'     => $request->tanggal_lhr,
+                    'domisili'        => $request->domisili,
+                    'desc'            => $request->desc,
+                    'job'             => $request->job,
+                    'hourly_rate'     => $request->hourly_rate,
+                    'lokasi_mengajar' => $request->lokasi_mengajar,
+                    'latitude'        => $newLat,
+                    'langitude'       => $newLng,
+                ]);
+
+                if ($coordChanged) {
+                    $tutor->cacheDistances()->delete();
+                }
+            });
         }
 
         return back()->with('success', 'Profil berhasil diperbarui.');
