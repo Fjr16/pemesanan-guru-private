@@ -41,11 +41,13 @@
                     @endforeach
                 </select>
                 
+                @if(Auth::check() && Auth::user()->role === 'siswa')
                 {{-- Pilih lokasi --}}
                 <select name="lokasi_filter" id="searchLokasi" class="tk-search-select" aria-label="Pilih lokasi">
                     <option value="">Semua Lokasi</option>
                     <option value="terdekat">Lokasi Terdekat</option>
                 </select>
+                @endif
 
                 {{-- Tombol cari --}}
                 <button type="submit" class="tk-search-btn" id="searchBtn">

@@ -24,9 +24,9 @@ class TutorSearchController extends Controller
             $query->whereHas('tutorSubjects', fn ($q) => $q->where('subject_category_id', $mapelId));
         }
 
-        $student = auth()->user()->student;
+        $student = auth()->user()->student ?? null;
         $nearest = $request->input('lokasi_filter') === 'terdekat';
-        if ($nearest) {
+        if ($nearest && $student) {
             $lat = $student->latitude_dom ?? null;
             $lng = $student->langitude_dom ?? null;
 
@@ -53,7 +53,7 @@ class TutorSearchController extends Controller
                 $query->orderByDesc('session_count');
                 break;
             default:
-                $nearest ? $query->orderBy('distance') : null;
+                ($nearest && $student) ? $query->orderBy('distance') : null;
         }
 
         $perPage = 6;
@@ -61,7 +61,7 @@ class TutorSearchController extends Controller
         $total = $query->count();
         $tutors = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
 
-        $routes = $nearest ? $this->routeDistances($tutors, $student, $lat, $lng) : [];
+        $routes = ($nearest && $student) ? $this->routeDistances($tutors, $student, $lat, $lng) : [];
 
         $data = $tutors->map(function ($t) use ($routes, $nearest) {
             $row = [
