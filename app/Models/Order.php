@@ -67,8 +67,8 @@ class Order extends Model
         return [
             'total_payment' => 'decimal:2',
             'expired_at' => 'datetime',
-            'latitude_order' => 'decimal:10,7',
-            'langitude_order' => 'decimal:10,7',
+            'latitude_order' => 'float',
+            'langitude_order' => 'float',
         ];
     }
 

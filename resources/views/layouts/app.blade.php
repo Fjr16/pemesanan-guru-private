@@ -235,6 +235,21 @@
     <script>
         window.APP_CONFIG = { geoapifyKey: @json(config('services.geoapify.frontend_key')) };
     </script>
+
+    <script>
+        function showToast(msg, type) {
+            type = type || 'success';
+            const bg = type === 'success' ? '#ecfdf5' : '#fef2f2';
+            const color = type === 'success' ? '#065f46' : '#991b1b';
+            const border = type === 'success' ? '#a7f3d0' : '#fecaca';
+            const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill';
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;min-width:240px;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.1);background:${bg};color:${color};border:1px solid ${border};`;
+            toast.innerHTML = `<i class="bi bi-${icon}"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>

@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Services\MidtransService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PembayaranController extends Controller
 {
@@ -63,6 +65,26 @@ class PembayaranController extends Controller
             ->whereIn('status', ['paid', 'pending'])
             ->latest()
             ->first();
+
+        return view('pages.siswa.pembayaran-sukses', compact('order', 'payment'));
+    }
+    public function failed(Request $r)
+    {
+        $orderId = $r->query('order_id', null);
+        $trans_status = $r->query('transaction_status', null);
+        // tambahkan mapping transaction_status agar sesuai denga enum pada payment tabel
+        // untuk sementara 
+        $trans_status = $trans_status == 'expire' ? 'expired' : $trans_status; 
+
+        $payment = Payment::where('transactionId', $orderId)->first();
+        if (! $payment) {
+            Log::warning('Midtrans callback: payment not found', $orderId);
+
+            return response()->json(['message' => 'Payment not found'], 404);
+        }
+
+        $payment->update(['status' => $trans_status]);
+        $order = $payment->order;
 
         return view('pages.siswa.pembayaran-sukses', compact('order', 'payment'));
     }

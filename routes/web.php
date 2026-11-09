@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\SiswaController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Support\Facades\Route;
 
 /* ================================================================
@@ -51,6 +52,9 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::put('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/password',   [App\Http\Controllers\Siswa\ProfileController::class, 'updatePassword'])->name('profil.password');
 
+    Route::get('/rating/pending', [RatingController::class, 'getPendingRating'])->name('rating.pending');
+    Route::post('/rating/{rating}', [RatingController::class, 'store'])->name('rating.store');
+
 });
 
 
@@ -91,6 +95,12 @@ Route::middleware(['auth', 'role:tutor'])->prefix('tutor-panel')->name('tutor.')
         Route::post('/profil/education',                  [App\Http\Controllers\Tutor\ProfileController::class, 'storeEducation'])->name('profil.education.store');
         Route::put('/profil/education/{education}',       [App\Http\Controllers\Tutor\ProfileController::class, 'updateEducation'])->name('profil.education.update');
         Route::delete('/profil/education/{education}',    [App\Http\Controllers\Tutor\ProfileController::class, 'destroyEducation'])->name('profil.education.destroy');
+
+        Route::get('/kelas',                     [App\Http\Controllers\Tutor\TutorManageClassController::class, 'index'])->name('kelas');
+        Route::get('/kelas/{order}',             [App\Http\Controllers\Tutor\TutorManageClassController::class, 'show'])->name('kelas.show');
+        Route::post('/kelas/{order}/terima',     [App\Http\Controllers\Tutor\TutorManageClassController::class, 'terima'])->name('kelas.terima');
+        Route::post('/kelas/{order}/tolak',      [App\Http\Controllers\Tutor\TutorManageClassController::class, 'tolak'])->name('kelas.tolak');
+        Route::post('/kelas/{order}/selesai',    [App\Http\Controllers\Tutor\TutorManageClassController::class, 'selesai'])->name('kelas.selesai');
 
     });
 

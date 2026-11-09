@@ -288,6 +288,8 @@
     </div>
 </section>
 
+<x-rating/>
+
 @endsection
 
 

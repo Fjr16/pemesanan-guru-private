@@ -254,6 +254,12 @@
             <a href="{{ route('tutor.profil') }}" class="tk-nav-link {{ request()->routeIs('tutor.profil*') ? 'active' : '' }}">
                 <i class="bi bi-person"></i> Profil
             </a>
+
+            <div class="tk-nav-section">Kelas</div>
+
+            <a href="{{ route('tutor.kelas') }}" class="tk-nav-link {{ request()->routeIs('tutor.kelas*') ? 'active' : '' }}">
+                <i class="bi bi-card-checklist"></i> Manajemen Kelas
+            </a>
         @endif
 
         <div class="tk-sidebar-footer">

@@ -27,6 +27,9 @@ class BookingController extends Controller
         if (! $student) {
             return response()->json(['message' => 'Data siswa tidak ditemukan, mohon lengkapi profil anda'], 404);
         }
+        if(empty($student->alamat) || empty($student->latitude_dom) || empty($student->langitude_dom)){
+            return response()->json(['message' => 'Untuk melakukan pemesanan, mohon lengkapi profil alamat domisili anda terlebih dahulu'], 404);
+        }
 
         $validated = $request->validate([
             'schedule_ids' => ['required', 'array', 'min:1'],
@@ -105,6 +108,9 @@ class BookingController extends Controller
                 'catatan' => $validated['catatan'],
                 'total_payment' => $totalPayment,
                 'expired_at' => now()->addHours(24),
+                'alamat_order' => $student->alamat,
+                'latitude_order' => $student->latitude_dom,
+                'langitude_order' => $student->langitude_dom,
             ]);
 
             foreach ($schedules as $schedule) {

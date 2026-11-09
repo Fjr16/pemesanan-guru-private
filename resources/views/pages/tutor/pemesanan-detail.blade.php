@@ -132,6 +132,28 @@ setInterval(updateCountdowns, 1000);
             @endif
         </div>
 
+        {{-- lokasi les private --}}
+        <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:14px;">
+                <i class="bi bi-pin-map-fill" style="font-size:14px;color:#1e2d6b;"></i>
+                <span style="font-size:13px;font-weight:600;color:#1a1a2e;">Lokasi Kegiatan</span>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;">
+                <div style="font-weight:600;font-size:15px;color:#1a1a2e;">
+                    {{ $order?->alamat_order ?? '-' }}
+                </div>
+                <div>
+                    <div style="font-size:11px;color:#8890a8;margin-bottom:2px;">Latitude</div>
+                    <div class="badge bg-dark" style="font-size:13px;font-weight:500;font-family:monospace;">{{ $order?->latitude_order ?? '-' }}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px;color:#8890a8;margin-bottom:2px;">Langitude</div>
+                    <div class="badge bg-dark" style="font-size:13px;font-weight:500;font-family:monospace;">{{ $order?->langitude_order ?? '-' }}</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     {{-- ── Kanan: Ringkasan + Aksi ─────────────────────────── --}}
