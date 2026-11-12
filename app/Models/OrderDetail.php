@@ -5,7 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['order_id', 'tutor_schedule_id', 'tanggal', 'jam_start', 'jam_end', 'harga'])]
+#[Fillable(
+    [
+        'order_id', 
+        'tutor_schedule_id', 
+        'tanggal', 
+        'jam_start', 
+        'jam_end', 
+        'harga',
+        'tujuan_pembelajaran',
+        'materi',
+        'penilaian',
+        'kehadiran',
+        'status'
+    ]
+)]
+
 class OrderDetail extends Model
 {
     public function order(){

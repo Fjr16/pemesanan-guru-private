@@ -109,6 +109,9 @@
                                     <li><a class="dropdown-item" href="{{ route('siswa.pemesanan') }}">
                                         <i class="bi bi-calendar-check me-2"></i>Pemesanan Saya
                                     </a></li>
+                                    <li><a class="dropdown-item" href="{{ route('siswa.rekap-kelas') }}">
+                                        <i class="bi bi-journal-text me-2"></i>Rekap Kelas
+                                    </a></li>
                                     <li><a class="dropdown-item" href="{{ route('siswa.profil') }}">
                                         <i class="bi bi-person me-2"></i>Profil
                                     </a></li>

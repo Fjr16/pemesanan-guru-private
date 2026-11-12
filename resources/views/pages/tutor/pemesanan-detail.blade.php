@@ -234,16 +234,6 @@ setInterval(updateCountdowns, 1000);
                         </div>
                         <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Pembayaran Diterima</div>
                         <div style="font-size:12px;color:#8890a8;margin-bottom:14px;">Sesi siap dimulai sesuai jadwal.</div>
-
-                        <form method="POST" action="{{ route('tutor.pemesanan.selesai', $order->id) }}">
-                            @csrf
-                            <button type="submit"
-                                    style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#1e2d6b;color:#fff;transition:background .15s;"
-                                    onmouseover="this.style.background='#162252'"
-                                    onmouseout="this.style.background='#1e2d6b'">
-                                <i class="bi bi-patch-check"></i> Tandai Selesai
-                            </button>
-                        </form>
                     @else
                         <div style="width:48px;height:48px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
                             <i class="bi bi-hourglass-split" style="font-size:22px;color:#1e40af;"></i>

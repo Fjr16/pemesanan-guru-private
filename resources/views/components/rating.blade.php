@@ -31,6 +31,39 @@
         outline-offset: 2px;
         border-radius: .5rem; 
     }
+
+    #{{ $id }} .rating-hero {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    #{{ $id }} .rating-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e8f7ee, #d9f5e5);
+        color: #15803d;
+        font-size: 1.25rem;
+        margin-bottom: .75rem;
+    }
+
+    #{{ $id }} .rating-greeting {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        line-height: 1.4;
+    }
+
+    #{{ $id }} .rating-subtext {
+        margin: .35rem 0 0;
+        font-size: .82rem;
+        color: #5d6785;
+        line-height: 1.5;
+    }
 </style>
 
 <div class="modal fade" id="{{ $id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="{{ $id }}Label" aria-hidden="true">
@@ -41,6 +74,14 @@
                 <button type="button" class="btn-close" id="ratingClose"></button>
             </div>
             <div class="modal-body">
+                <div class="rating-hero">
+                    <div class="rating-badge">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <p class="rating-greeting">Selamat! Anda telah menyelesaikan proses private bersama tutor kami.</p>
+                    <p class="rating-subtext">Terima kasih telah mengikuti kelas. Silakan beri penilaian untuk membantu kami meningkatkan kualitas pembelajaran.</p>
+                </div>
+
                 <div class="container text-center mb-0">
                     <img 
                         id="rTutorFoto"
@@ -88,14 +129,14 @@
         function openRating(id, tutor, foto){
             $('#rTutorFoto').attr('src', '');
             $('#rTutorFoto').attr('alt', '');
-            $('#rTutorName').textContent('');
+            $('#rTutorName').text('');
             $('#rError').addClass('d-none');
             $('#ratingSubmit').prop('disabled', true);
             render(0);
             
             $('#rTutorFoto').attr('src', foto);
             $('#rTutorFoto').attr('alt', tutor);
-            $('#rTutorName').textContent(tutor);
+            $('#rTutorName').text(tutor);
             ratingId = id;
             modal.show();
         }
@@ -106,12 +147,6 @@
                 if (res.data) openRating(res.data.id, res.data.tutor_name, res.data.foto);
             });
         }
-
-        // manual dari halaman riwayat
-        // $(document).on('click', '.btn-rate', function () {
-        // const d = $(this).data();
-        // openRating(d.id, d.tutor, d.foto);
-        // });
 
         const render = (n) => stars.forEach((s, i) => {
             const on = i < n;
@@ -154,6 +189,15 @@
                             .text(res.errors.length() > 0 ? res.errors : res.message);
                     }else{
                         modal.hide();
+
+                        document.dispatchEvent(new CustomEvent('rating:submitted', {
+                            detail: {
+                                ratingId: ratingId,
+                                tutor: $('#rTutorName').text() || '',
+                                score: input.value,
+                            }
+                        }));
+
                         showToast('Terimakasih atas penilaian anda !!', 'success');
                     }
                 }, error:function(xhr){
@@ -164,6 +208,9 @@
             });
         });
 
-        $('#ratingSkip', '#ratingClose').on('click', () => { modal.hide(); });
+        $('#ratingSkip, #ratingClose').on('click', () => { modal.hide(); });
+
+        window.openRating = openRating;
+        window.closeRatingModal = () => modal.hide();
     });
 </script>

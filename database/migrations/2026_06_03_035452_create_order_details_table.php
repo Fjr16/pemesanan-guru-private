@@ -19,7 +19,6 @@ return new class extends Migration
             $table->time('jam_start')->nullable(false);
             $table->time('jam_end')->nullable(false);
             $table->decimal('harga')->nullable(false);
-            $table->enum('status', ['pending','confirmed','rejected'])->default('pending');
             $table->timestamps();
         });
     }

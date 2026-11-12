@@ -206,6 +206,30 @@
 
         /* ── Content ── */
         .tk-content { padding: 24px 28px; flex: 1; }
+
+        /* ── Flash Messages ── */
+        .tk-flash-container {
+            padding: 18px 28px 0;
+        }
+        .tk-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            padding: 12px 14px;
+            margin: 0 0 12px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 20px rgba(30,45,107,0.06);
+        }
+        .tk-alert .btn-close {
+            margin-left: auto;
+            opacity: 0.75;
+        }
+        .tk-alert .btn-close:focus {
+            box-shadow: none;
+        }
     </style>
     @stack('styles')
 </head>
@@ -284,6 +308,35 @@
         </div>
 
         <!-- Content -->
+        {{-- FLASH MESSAGES --}}
+        @if(session('success') || session('error') || session('warning') || session('info'))
+            <div class="tk-flash-container" id="flash-container">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show tk-alert" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show tk-alert" role="alert">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>{{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if(session('warning'))
+                    <div class="alert alert-warning alert-dismissible fade show tk-alert" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('warning') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if(session('info'))
+                    <div class="alert alert-info alert-dismissible fade show tk-alert" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i>{{ session('info') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+            </div>
+        @endif
         <div class="tk-content">
             @yield('content')
         </div>

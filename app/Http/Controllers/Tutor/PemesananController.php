@@ -20,7 +20,6 @@ class PemesananController extends Controller
 
         if (! $tutor) {
             return view('pages.tutor.pemesanan', [
-                // 'orders' => collect()->paginate(10),
                 'orders' => new LengthAwarePaginator([],0,10),
                 'counts' => ['pending' => 0, 'confirmed' => 0, 'completed' => 0, 'canceled' => 0, 'rejected' => 0, 'expired' => 0],
             ]);
@@ -109,29 +108,5 @@ class PemesananController extends Controller
         Mail::to($order->student->user->email)->queue(new OrderRejectedMail($order));
 
         return redirect()->route('tutor.pemesanan')->with('success', 'Pesanan ditolak.');
-    }
-
-    public function selesai(Request $request, $id)
-    {
-        $tutor = Auth::user()->tutor;
-
-        abort_unless($tutor, 404);
-
-        $order = Order::where('tutor_id', $tutor->id)
-            ->where('id', $id)
-            ->where('status', 'confirmed')
-            ->firstOrFail();
-
-        abort_unless($order->payments()->where('status', 'paid')->exists(), 403, 'Pembayaran belum terverifikasi.');
-
-        $order->update(['expired_at' => null]);
-
-        ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
-            ->where('status', 'locked')
-            ->update(['status' => 'confirmed', 'expired_at' => null]);
-
-        $order->update(['status' => 'complete']);
-
-        return redirect()->route('tutor.pemesanan.show', $id)->with('success', 'Sesi ditandai selesai.');
     }
 }

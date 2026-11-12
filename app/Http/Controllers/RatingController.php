@@ -41,8 +41,9 @@ class RatingController extends Controller
      */
     public function store(Request $request, TutorRating $rating)
     {
+        $isExpired = $rating->expired_at->isPast();
         abort_unless(auth()->user()->student->id === $rating->student_id, 403);
-        abort_unless($rating->status === 'pending' && $rating->expired_at->isFeature(), 422, 'proses rating telah berakhir');
+        abort_unless($rating->status === 'pending' && !$isExpired, 422, 'proses rating telah berakhir');
 
         $validators = Validator::make($request->all(), [
             'score' => 'required|integer|between:1,5',

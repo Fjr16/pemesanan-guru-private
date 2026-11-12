@@ -26,7 +26,7 @@
         <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;margin-bottom:14px;">
             <div style="display:flex;flex-direction:column;gap:12px;">
                 @forelse($order->orderDetails->sortBy('jam_start') as $detail)
-                    <form method="POST" action="{{ route('tutor.pemesanan.selesai', $order->id) }}" class="tk-session-card">
+                    <form method="POST" action="{{ route('tutor.kelas.selesai', $detail->id) }}" class="tk-session-card">
                         @csrf
                         <div class="tk-session-header">
                             <div class="tk-session-header-title">
@@ -42,17 +42,17 @@
                             <div class="tk-form-grid">
                                 <div class="tk-form-group">
                                     <label for="materi_{{ $detail->id }}" class="tk-form-label">Materi Pembelajaran</label>
-                                    <input id="materi_{{ $detail->id }}" type="text" name="materi_pembelajaran" class="tk-form-input" placeholder="Contoh: Operasi hitung dasar, persamaan linear, dll" />
+                                    <input id="materi_{{ $detail->id }}" type="text" name="materi" class="tk-form-input" value="{{ old('materi', $detail->materi) }}" placeholder="Contoh: Operasi hitung dasar, persamaan linear, dll" />
                                 </div>
 
                                 <div class="tk-form-group">
                                     <label for="tujuan_{{ $detail->id }}" class="tk-form-label">Tujuan Pembelajaran</label>
-                                    <textarea id="tujuan_{{ $detail->id }}" name="tujuan_pembelajaran" class="tk-form-textarea" placeholder="Tuliskan tujuan yang ingin dicapai pada sesi ini..."></textarea>
+                                    <textarea id="tujuan_{{ $detail->id }}" name="tujuan_pembelajaran" class="tk-form-textarea" placeholder="Tuliskan tujuan yang ingin dicapai pada sesi ini...">{{ old('tujuan_pembelajaran', $detail->tujuan_pembelajaran) }}</textarea>
                                 </div>
 
                                 <div class="tk-form-group">
                                     <label for="penilaian_{{ $detail->id }}" class="tk-form-label">Penilaian</label>
-                                    <textarea id="penilaian_{{ $detail->id }}" name="penilaian" class="tk-form-textarea" placeholder="Diisi dengan CP yang diharapkan pada materi + indikator apakah siswa memenuhi CP. Contoh: Siswa mampu menyelesaikan soal perkalian dengan benar dan menjelaskan langkah penyelesaian; indikator: siswa sudah mampu memahami konsep dan mengerjakan soal dengan tepat."></textarea>
+                                    <textarea id="penilaian_{{ $detail->id }}" name="penilaian" class="tk-form-textarea" placeholder="Diisi dengan CP yang diharapkan pada materi + indikator apakah siswa memenuhi CP. Contoh: Siswa mampu menyelesaikan soal perkalian dengan benar dan menjelaskan langkah penyelesaian; indikator: siswa sudah mampu memahami konsep dan mengerjakan soal dengan tepat.">{{ old('penilaian', $detail->penilaian) }}</textarea>
                                     <small class="tk-form-hint">
                                         Diisi dengan CP yang diharapkan pada materi + indikator apakah siswa memenuhi CP. Ini menjelaskan penilaian tutor terhadap siswa dalam kelas ini.
                                     </small>
@@ -62,21 +62,21 @@
                                     <label class="tk-form-label">Kehadiran</label>
                                     <div class="tk-switch-group">
                                         <label class="tk-switch-option">
-                                            <input type="radio" name="kehadiran_{{ $detail->id }}" value="hadir" checked>
+                                            <input type="radio" name="kehadiran" id="kehadiran_{{ $detail->id }}" value="hadir" {{ old('kehadiran_' . $detail->id, $detail->kehadiran) === 'hadir' ? 'checked' : '' }}>
                                             <span class="tk-switch-indicator"></span>
                                             <span class="tk-switch-text">Hadir</span>
                                         </label>
                                         <label class="tk-switch-option">
-                                            <input type="radio" name="kehadiran_{{ $detail->id }}" value="alpha">
+                                            <input type="radio" name="kehadiran" id="kehadiran_{{ $detail->id }}" value="alpha" {{ old('kehadiran_' . $detail->id, $detail->kehadiran) === 'alpha' ? 'checked' : '' }} >
                                             <span class="tk-switch-indicator"></span>
                                             <span class="tk-switch-text">Alpha</span>
                                         </label>
                                     </div>
                                 </div>
 
-                                <button type="submit" class="tk-submit-btn">
+                                <button type="submit" class="tk-submit-btn" {{ $detail->status === 'completed' ? 'disabled' : '' }}>
                                     <i class="bi bi-check-circle"></i>
-                                    Tandai Selesai
+                                    {{ $detail->status === 'completed' ? 'Sesi Selesai' : 'Tandai Selesai' }}
                                 </button>
                             </div>
                         </div>
@@ -96,39 +96,6 @@
 
     {{-- ── Kanan: Ringkasan + Aksi ─────────────────────────── --}}
     <div>
-
-        {{-- @if($st === 'confirmed')
-            @php $isPaid = $order->payments()->where('status', 'paid')->exists(); @endphp
-            <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;margin-bottom:14px;">
-                <div style="text-align:center;">
-                    <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-                        <i class="bi bi-wallet2" style="font-size:22px;color:#15803d;"></i>
-                    </div>
-                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Pembayaran Diterima</div>
-                    <div style="font-size:12px;color:#8890a8;margin-bottom:14px;">Sesi siap dimulai sesuai jadwal.</div>
-
-                    <form method="POST" action="{{ route('tutor.pemesanan.selesai', $order->id) }}">
-                        @csrf
-                        <button type="submit"
-                                style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:#1e2d6b;color:#fff;transition:background .15s;"
-                                onmouseover="this.style.background='#162252'"
-                                onmouseout="this.style.background='#1e2d6b'">
-                            <i class="bi bi-patch-check"></i> Tandai Selesai
-                        </button>
-                    </form>
-                </div>
-            </div>
-        @elseif($st === 'complete')
-            <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;">
-                <div style="text-align:center;">
-                    <div style="width:48px;height:48px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-                        <i class="bi bi-patch-check-fill" style="font-size:22px;color:#15803d;"></i>
-                    </div>
-                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Sesi Selesai</div>
-                    <div style="font-size:12px;color:#8890a8;">Pembayaran telah diterima.</div>
-                </div>
-            </div>
-        @endif --}}
         <div style="background:#fff;border:1px solid #e8eaf0;border-radius:12px;padding:20px 22px;">
              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                 <div style="display:flex;align-items:center;gap:7px;">
@@ -364,6 +331,11 @@
         transform: translateY(1px);
     }
 
+    .tk-submit-btn:disabled {
+        background: #bbb9b9;
+        cursor: not-allowed;
+    }
+
     @media (max-width: 576px) {
         .tk-session-header {
             flex-direction: column;
@@ -384,11 +356,6 @@
         }
     }
 </style>
-@endpush
-
-@push('scripts')
-<script>
-</script>
 @endpush
 
 @endsection

@@ -122,7 +122,7 @@
                                         Rp {{ number_format($order->total_payment, 0, ',', '.') }}
                                     </span>
                                 </div>
-                                <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                     @if($order->effective_status === 'pending')
                                         <form id="cancel-form-{{ $order->id }}" method="POST" action="{{ route('siswa.pemesanan.cancel', $order->id) }}" style="display:inline;">
                                             @csrf
@@ -145,6 +145,27 @@
                                                style="background:#1e2d6b;color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
                                                 <i class="bi bi-wallet2"></i> Bayar
                                             </a>
+                                        @endif
+                                    @endif
+
+                                    @if($order->effective_status === 'complete')
+                                        @if($order->tutorRating->status === 'rated')
+                                            <span style="background:#eef2ff;color:#1e2d6b;border:1px solid #c7d2fe;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+                                                <i class="bi bi-star-fill"></i> Sudah dinilai
+                                            </span>
+                                        @elseif($order->tutorRating->status === 'expired' || ($order->tutorRating->expired_at && $order->tutorRating->expired_at->isPast()))
+                                            <span style="background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+                                                <i class="bi bi-clock-history"></i> Rating berakhir
+                                            </span>
+                                        @else
+                                            <button type="button"
+                                                class="btn-rate"
+                                                data-id="{{ $order->tutorRating->id }}"
+                                                data-tutor="{{ $order->tutor->name ?? 'Tutor' }}"
+                                                data-foto="{{ $order->tutor->foto ? asset('storage/' . $order->tutor->foto) : '' }}"
+                                                style="background:#fff7ed;color:#c2410c;border:1px solid #fdba74;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                                                <i class="bi bi-star"></i> Beri rating
+                                            </button>
                                         @endif
                                     @endif
 
@@ -207,10 +228,43 @@
     </div>
 </div>
 
+<x-rating id="ratingModal" />
+
 @endsection
 
 @push('scripts')
 <script>
+$(document).on('click', '.btn-rate', function () {
+    const btn = $(this);
+    const id = btn.data('id');
+    const tutor = btn.data('tutor');
+    const foto = btn.data('foto');
+
+    if (typeof window.openRating === 'function') {
+        window.openRating(id, tutor, foto);
+    }
+});
+
+$(document).on('rating:submitted', function (event) {
+    const ratingId = event.detail && event.detail.ratingId;
+
+    if (!ratingId) {
+        return;
+    }
+
+    const selector = '.btn-rate[data-id="' + String(ratingId).replace(/"/g, '\\"') + '"]';
+    const button = document.querySelector(selector);
+
+    if (!button) {
+        return;
+    }
+
+    const badge = document.createElement('span');
+    badge.style = 'background:#eef2ff;color:#1e2d6b;border:1px solid #c7d2fe;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;';
+    badge.innerHTML = '<i class="bi bi-star-fill"></i> Sudah dinilai';
+    button.replaceWith(badge);
+});
+
 function updateCountdowns() {
     document.querySelectorAll('.countdown-timer').forEach(function(el) {
         var expired = parseInt(el.dataset.expired);

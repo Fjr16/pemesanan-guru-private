@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('ulasan', 500)->nullable(true);
             $table->timestamp('expired_at')->nullable(true);
             $table->boolean('is_appear')->default(false);
-            $table->enum('status', ['pending','rated','expired'])->default('pending');
+            $table->enum('status', ['pending','rated'])->default('pending');
             $table->timestamps();
         });
     }

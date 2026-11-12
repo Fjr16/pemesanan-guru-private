@@ -48,6 +48,8 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::post('/pemesanan/{order}/bayar',  [App\Http\Controllers\Siswa\PembayaranController::class, 'process'])->name('pembayaran.process');
     Route::get('/pemesanan/{order}/sukses',  [App\Http\Controllers\Siswa\PembayaranController::class, 'success'])->name('pembayaran.sukses');
 
+    Route::get('/rekap-kelas', [App\Http\Controllers\Siswa\DashboardController::class, 'rekapKelas'])->name('rekap-kelas');
+
     Route::get('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'index'])->name('profil');
     Route::put('/profil',            [App\Http\Controllers\Siswa\ProfileController::class, 'update'])->name('profil.update');
     Route::put('/profil/password',   [App\Http\Controllers\Siswa\ProfileController::class, 'updatePassword'])->name('profil.password');
@@ -77,7 +79,6 @@ Route::middleware(['auth', 'role:tutor'])->prefix('tutor-panel')->name('tutor.')
         Route::get('/pemesanan/{order}',             [App\Http\Controllers\Tutor\PemesananController::class, 'show'])->name('pemesanan.show');
         Route::post('/pemesanan/{order}/terima',     [App\Http\Controllers\Tutor\PemesananController::class, 'terima'])->name('pemesanan.terima');
         Route::post('/pemesanan/{order}/tolak',      [App\Http\Controllers\Tutor\PemesananController::class, 'tolak'])->name('pemesanan.tolak');
-        Route::post('/pemesanan/{order}/selesai',    [App\Http\Controllers\Tutor\PemesananController::class, 'selesai'])->name('pemesanan.selesai');
 
         Route::get('/profil',            [App\Http\Controllers\Tutor\ProfileController::class, 'index'])->name('profil');
         Route::put('/profil',            [App\Http\Controllers\Tutor\ProfileController::class, 'update'])->name('profil.update');
@@ -98,8 +99,6 @@ Route::middleware(['auth', 'role:tutor'])->prefix('tutor-panel')->name('tutor.')
 
         Route::get('/kelas',                     [App\Http\Controllers\Tutor\TutorManageClassController::class, 'index'])->name('kelas');
         Route::get('/kelas/{order}',             [App\Http\Controllers\Tutor\TutorManageClassController::class, 'show'])->name('kelas.show');
-        Route::post('/kelas/{order}/terima',     [App\Http\Controllers\Tutor\TutorManageClassController::class, 'terima'])->name('kelas.terima');
-        Route::post('/kelas/{order}/tolak',      [App\Http\Controllers\Tutor\TutorManageClassController::class, 'tolak'])->name('kelas.tolak');
         Route::post('/kelas/{order}/selesai',    [App\Http\Controllers\Tutor\TutorManageClassController::class, 'selesai'])->name('kelas.selesai');
 
     });

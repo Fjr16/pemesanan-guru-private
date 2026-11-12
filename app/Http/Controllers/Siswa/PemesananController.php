@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Siswa;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\ScheduleLock;
+use App\Models\TutorRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,7 @@ class PemesananController extends Controller
         $status = $request->input('status', 'all');
 
         $baseQuery = Order::where('student_id', $student->id)
-            ->with(['tutor', 'orderDetails'])
+            ->with(['tutor', 'orderDetails', 'tutorRating'])
             ->latest();
 
         $counts = [
@@ -40,7 +41,6 @@ class PemesananController extends Controller
         $orders = $status === 'all'
             ? $baseQuery->get()
             : $baseQuery->whereEffectiveStatus($status)->get();
-
         return view('pages.siswa.pemesanan', compact('orders', 'counts'));
     }
 

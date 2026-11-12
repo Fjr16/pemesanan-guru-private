@@ -34,4 +34,8 @@ class Student extends Model
     {
         return $this->hasMany(CacheDistance::class);
     }
+    public function tutorRatings()
+    {
+        return $this->hasMany(TutorRating::class);
+    }   
 }

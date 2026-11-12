@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Tutor;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Mail\OrderConfirmedMail;
-use App\Mail\OrderRejectedMail;
 use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\ScheduleLock;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TutorManageClassController extends Controller
 {
@@ -50,74 +49,68 @@ class TutorManageClassController extends Controller
         return view('pages.tutor.manage-class-show', compact('order'));
     }
 
-    public function terima(Request $request, $id)
-    {
-        $tutor = Auth::user()->tutor;
-
-        abort_unless($tutor, 404);
-
-        $order = Order::where('tutor_id', $tutor->id)
-            ->where('id', $id)
-            ->where('status', 'pending')
-            ->firstOrFail();
-
-        $order->update([
-            'status' => 'confirmed',
-            'expired_at' => now()->addHours(24),
-        ]);
-
-        ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
-            ->where('status', 'locked')
-            ->update(['expired_at' => now()->addHours(24)]);
-
-        Mail::to($order->student->user->email)->queue(new OrderConfirmedMail($order));
-
-        return redirect()->route('tutor.pemesanan.show', $id)->with('success', 'Pesanan berhasil diterima. Menunggu pembayaran siswa.');
-    }
-
-    public function tolak(Request $request, $id)
-    {
-        $tutor = Auth::user()->tutor;
-
-        abort_unless($tutor, 404);
-
-        $order = Order::where('tutor_id', $tutor->id)
-            ->where('id', $id)
-            ->where('status', 'pending')
-            ->firstOrFail();
-
-        $order->update(['status' => 'rejected']);
-
-        ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
-            ->where('status', 'locked')
-            ->update(['status' => 'release']);
-
-        Mail::to($order->student->user->email)->queue(new OrderRejectedMail($order));
-
-        return redirect()->route('tutor.pemesanan')->with('success', 'Pesanan ditolak.');
-    }
-
     public function selesai(Request $request, $id)
     {
-        $tutor = Auth::user()->tutor;
+        try {
+            DB::beginTransaction();
+            $tutor = Auth::user()->tutor;
 
-        abort_unless($tutor, 404);
+            abort_unless($tutor, 404);
 
-        $order = Order::where('tutor_id', $tutor->id)
-            ->where('id', $id)
-            ->where('status', 'confirmed')
-            ->firstOrFail();
+            $item = OrderDetail::findOrFail($id);
+            $isPast = $item->tanggal . ' ' . $item->jam_end < now()->format('Y-m-d H:i:s');
 
-        abort_unless($order->payments()->where('status', 'paid')->exists(), 403, 'Pembayaran belum terverifikasi.');
+            if (!$isPast) {
+                return back()->with('error', 'Sesi belum selesai.');
+            }
 
-        $order->update(['expired_at' => null]);
+            $validators = Validator::make($request->all(), [
+                'tujuan_pembelajaran' => 'required|string|max:500',
+                'materi' => 'required|string|max:255',
+                'penilaian' => 'required|string|max:500',
+                'kehadiran' => 'required|in:hadir,alpha',
+            ]);
 
-        ScheduleLock::whereIn('order_detail_id', $order->orderDetails->pluck('id'))
-            ->where('status', 'locked')
-            ->update(['status' => 'confirmed', 'expired_at' => null]);
+            if ($validators->fails()) {
+                return back()->with('error', $validators->errors()->first());
+            }
 
-        $order->update(['status' => 'complete']);
+            $item->update([
+                'tujuan_pembelajaran' => $request->input('tujuan_pembelajaran'),
+                'materi' => $request->input('materi'),
+                'penilaian' => $request->input('penilaian'),
+                'kehadiran' => $request->input('kehadiran'),
+                'status' => 'completed',
+            ]);
 
-        return redirect()->route('tutor.pemesanan.show', $id)->with('success', 'Sesi ditandai selesai.');
+            ScheduleLock::where('order_detail_id', $item->id)
+                ->where('status', 'locked')
+                ->update(['status' => 'confirmed', 'expired_at' => null]);
+
+            // Check if all order details are completed
+            $allCompleted = $item->order->orderDetails->every(function ($detail) {
+                return $detail->status === 'completed';
+            });
+            if ($allCompleted) {
+                $item->order->update(['status' => 'complete']);
+
+                // create rating for student if not exists
+                $item->order->student->tutorRatings()->firstOrCreate([
+                    'tutor_id' => $tutor->id,
+                    'order_id' => $item->order->id,
+                ], [
+                    'status' => 'pending',
+                    'expired_at' => now()->addDays(7),
+                    'is_appear' => false,
+                ]);
+            }
+
+
+            DB::commit();
+            return back()->with('success', 'Sesi ditandai selesai.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat menandai sesi selesai.');
+        }
     }
 }
